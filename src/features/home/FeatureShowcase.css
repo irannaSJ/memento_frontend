@@ -1,0 +1,261 @@
+.feature-showcase {
+  position: relative;
+  width: 100%;
+  overflow: visible;
+}
+
+.feature-showcase__intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(240px, 0.8fr);
+  align-items: end;
+  gap: clamp(36px, 7vw, 100px);
+  width: min(1240px, 100%);
+  max-width: none;
+  box-sizing: border-box;
+  min-height: 68svh;
+  margin: 0 auto;
+  padding: 165px 42px 68px;
+}
+
+.feature-showcase__intro-main {
+  min-width: 0;
+}
+
+.feature-showcase__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-muted);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.17em;
+}
+
+.feature-showcase__eyebrow::before {
+  width: 23px;
+  height: 1px;
+  background: var(--color-muted);
+  content: '';
+}
+
+.feature-showcase__title {
+  margin: 24px 0 0;
+  color: var(--color-text);
+  font-size: clamp(45px, 6.6vw, 82px);
+  font-weight: 650;
+  letter-spacing: -0.085em;
+  line-height: 0.99;
+}
+
+.feature-showcase__intro-aside {
+  padding-bottom: 7px;
+}
+
+.feature-showcase__intro-aside > p {
+  max-width: 370px;
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+.feature-showcase__feature-count {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-top: 24px;
+  color: var(--color-muted);
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+}
+
+.feature-showcase__count-line {
+  width: 27px;
+  height: 1px;
+  background: var(--color-border);
+}
+
+/* Pinned desktop stage */
+
+.feature-showcase__stage {
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  min-height: 680px;
+}
+
+.feature-showcase__stage-meta {
+  position: absolute;
+  z-index: 40;
+  top: 108px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  width: calc(100% - 80px);
+  transform: translateX(-50%);
+  color: var(--color-muted);
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.15em;
+}
+
+.feature-showcase__progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0;
+}
+
+.feature-showcase__progress strong {
+  color: var(--color-text);
+  font-size: 13px;
+}
+
+.feature-showcase__cards {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(100% - 80px);
+  max-width: none;
+  height: min(510px, calc(100svh - 255px));
+  min-height: 420px;
+  transform: translate(-50%, -50%);
+}
+
+.feature-showcase__scroll-cue {
+  position: absolute;
+  right: 0;
+  bottom: 23px;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--color-muted);
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.15em;
+}
+
+.feature-showcase__scroll-cue > i {
+  font-size: 15px;
+}
+
+@media (max-width: 1150px) and (min-width: 900px) {
+  .feature-showcase__stage-meta,
+  .feature-showcase__cards {
+    width: calc(100% - 64px);
+  }
+}
+
+@media (max-width: 899px) {
+  .feature-showcase__intro {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 23px;
+    min-height: 0;
+    padding: 160px 24px 50px;
+  }
+
+  .feature-showcase__title {
+    font-size: clamp(43px, 9vw, 68px);
+  }
+
+  .feature-showcase__intro-aside > p {
+    max-width: 570px;
+    font-size: 13px;
+  }
+
+  .feature-showcase__feature-count {
+    margin-top: 17px;
+  }
+
+  .feature-showcase__stage {
+    height: auto;
+    min-height: 0;
+    padding: 48px 0 56px;
+  }
+
+  .feature-showcase__stage-meta {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: calc(100% - 48px);
+    margin: 0 auto 24px;
+    transform: none;
+  }
+
+  .feature-showcase__cards {
+    position: relative;
+    top: auto;
+    left: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 23px;
+    width: calc(100% - 32px);
+    height: auto;
+    min-height: 0;
+    margin-inline: auto;
+    transform: none;
+
+    overflow: hidden;
+    isolation: isolate;
+    border-radius: 32px;
+  }
+
+  .feature-showcase__scroll-cue {
+    display: none;
+  }
+}
+
+/* Reduced-motion users get an unpinned, stacked layout. */
+
+@media (prefers-reduced-motion: reduce) {
+  .feature-showcase__stage {
+    height: auto;
+    min-height: 0;
+    padding: 48px 0 56px;
+  }
+
+  .feature-showcase__stage-meta {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: calc(100% - 48px);
+    margin: 0 auto 24px;
+    transform: none;
+  }
+
+  .feature-showcase__cards {
+    position: relative;
+    top: auto;
+    left: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 23px;
+    width: min(1080px, calc(100% - 32px));
+    height: auto;
+    min-height: 0;
+    margin-inline: auto;
+    transform: none;
+  }
+
+  .feature-showcase__scroll-cue {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .feature-showcase__intro {
+    padding-inline: 20px;
+  }
+
+  .feature-showcase__eyebrow {
+    font-size: 9px;
+  }
+
+  .feature-showcase__stage-meta {
+    width: calc(100% - 40px);
+  }
+}

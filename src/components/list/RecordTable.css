@@ -1,0 +1,80 @@
+.record-table__scroll {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-surface);
+}
+
+.record-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+  font-size: 13px;
+}
+
+.record-table th,
+.record-table td {
+  max-width: 280px;
+  padding: 15px 18px;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.record-table th {
+  background: var(--color-surface-raised);
+  color: var(--color-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.record-table td {
+  color: var(--color-text);
+}
+
+.record-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.record-table tbody tr:hover {
+  background: var(--color-hover);
+}
+
+.record-table__identifier {
+  font-weight: 650;
+}
+
+.record-table__cell-value {
+  display: inline-block;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+
+.record-table__status {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface-raised);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.record-table__message {
+  padding: 40px 20px !important;
+  color: var(--color-muted) !important;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .record-table th,
+  .record-table td {
+    padding: 12px 14px;
+  }
+}

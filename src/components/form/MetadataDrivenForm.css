@@ -1,0 +1,134 @@
+.metadata-form {
+  display: flex;
+  flex-direction: column;
+  gap: 19px;
+  padding: 23px 27px 27px;
+}
+
+.metadata-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.metadata-form__field > label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metadata-form__field input:not([type='checkbox']),
+.metadata-form__field select,
+.metadata-form__field textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 13px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  outline: none;
+  background: var(--color-page);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.6;
+  transition: border-color 160ms ease;
+}
+
+.metadata-form__field input[type='color'] {
+  min-height: 44px;
+  padding: 5px;
+}
+
+.metadata-form__field textarea {
+  min-height: 94px;
+  resize: vertical;
+}
+
+.metadata-form__field input:focus-visible,
+.metadata-form__field select:focus-visible,
+.metadata-form__field textarea:focus-visible {
+  border-color: var(--color-focus);
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.metadata-form__field input:disabled,
+.metadata-form__field select:disabled,
+.metadata-form__field textarea:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.metadata-form__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  cursor: pointer;
+}
+
+.metadata-form__checkbox input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-text);
+}
+
+.metadata-form__required {
+  color: #d65b65;
+}
+
+.metadata-form__readonly,
+.metadata-form__help {
+  color: var(--color-muted);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.metadata-form__error {
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  color: var(--color-text);
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.metadata-form__loading {
+  padding: 35px 20px;
+  color: var(--color-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.metadata-form__empty {
+  padding: 20px 0;
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.metadata-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 3px;
+}
+
+.metadata-form__actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .metadata-form {
+    padding: 19px;
+  }
+}

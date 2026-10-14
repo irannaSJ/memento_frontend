@@ -1,0 +1,391 @@
+/* ========================================
+   Floating navigation: shared layout
+======================================== */
+
+.floating-navigation-positioner {
+  position: fixed;
+  z-index: 1000;
+  top: 22px;
+  left: 50%;
+  width: min(1160px, calc(100% - 48px));
+  transform: translateX(-50%);
+}
+
+.floating-navigation {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 76px;
+  padding: 10px 14px 10px 18px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-nav-surface);
+  box-shadow: var(--color-shadow);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+/* ========================================
+   Mobile menu button
+======================================== */
+
+.floating-navigation__menu-toggle {
+  display: none;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.floating-navigation__menu-toggle i {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.floating-navigation__menu-toggle:hover {
+  border-color: var(--color-active-border);
+  background: var(--color-hover);
+}
+
+.floating-navigation__menu-toggle:active {
+  transform: scale(0.96);
+}
+
+/* ========================================
+   Brand and logo
+======================================== */
+
+.floating-navigation__brand {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+  min-width: max-content;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.floating-navigation__logo-window {
+  position: relative;
+  display: block;
+  width: 36px;
+  height: 30px;
+  flex: 0 0 36px;
+  overflow: hidden;
+}
+
+.floating-navigation__logo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  width: 36px;
+  height: 36px;
+  max-width: none;
+  object-fit: contain;
+  transition: filter 180ms ease;
+}
+
+:root[data-theme='dark'] .floating-navigation__logo {
+  filter: brightness(0) invert(1);
+}
+
+.floating-navigation__brand-name {
+  color: var(--color-text);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 1;
+}
+
+.floating-navigation__divider {
+  width: 1px;
+  height: 30px;
+  flex: 0 0 1px;
+  background: var(--color-border);
+}
+
+/* ========================================
+   Navigation content
+======================================== */
+
+.floating-navigation__content {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.floating-navigation__links {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.floating-navigation__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 13px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-muted);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 550;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.floating-navigation__link i {
+  font-size: 17px;
+  line-height: 1;
+}
+
+.floating-navigation__link:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.floating-navigation__link:active {
+  transform: scale(0.98);
+}
+
+.floating-navigation__link.is-active {
+  border-color: var(--color-active-border);
+  background: var(--color-active);
+  color: var(--color-text);
+  font-weight: 650;
+}
+
+/* ========================================
+   Theme button
+======================================== */
+
+.floating-navigation__theme-toggle {
+  display: inline-grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.floating-navigation__theme-toggle i {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.floating-navigation__theme-toggle:hover {
+  border-color: var(--color-active-border);
+  background: var(--color-hover);
+}
+
+.floating-navigation__theme-toggle:active {
+  transform: scale(0.96);
+}
+
+/* ========================================
+   Keyboard accessibility
+======================================== */
+
+.floating-navigation__menu-toggle:focus-visible,
+.floating-navigation__link:focus-visible,
+.floating-navigation__theme-toggle:focus-visible,
+.floating-navigation__brand:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+/* ========================================
+   Tablet adjustments
+======================================== */
+
+@media (max-width: 1050px) {
+  .floating-navigation-positioner {
+    width: calc(100% - 32px);
+  }
+
+  .floating-navigation {
+    gap: 10px;
+    padding-left: 14px;
+  }
+
+  .floating-navigation__link {
+    gap: 6px;
+    padding-inline: 10px;
+    font-size: 12px;
+  }
+
+  .floating-navigation__content {
+    gap: 8px;
+  }
+}
+
+/* ========================================
+   Mobile navigation
+======================================== */
+
+@media (max-width: 780px) {
+  .floating-navigation-positioner {
+    top: 14px;
+    width: calc(100% - 24px);
+  }
+
+  .floating-navigation {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    align-items: center;
+    gap: 0 12px;
+    min-height: 0;
+    padding: 12px 14px;
+    border-radius: 26px;
+  }
+
+  /*
+   * First row:
+   * Menu button on the left.
+   * Logo and brand on the right.
+   */
+
+  .floating-navigation__menu-toggle {
+    display: inline-grid;
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+  }
+
+  .floating-navigation__brand {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .floating-navigation__divider {
+    display: none;
+  }
+
+  /*
+   * Menu content is collapsed by default.
+   * It expands when the header has is-menu-open.
+   */
+
+  .floating-navigation__content {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+    max-height: 0;
+    margin-top: 0;
+    padding-top: 0;
+    overflow: hidden;
+    border-top: 1px solid transparent;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      max-height 240ms ease,
+      opacity 180ms ease,
+      padding-top 180ms ease,
+      margin-top 180ms ease,
+      border-color 180ms ease,
+      visibility 180ms ease;
+  }
+
+  .floating-navigation.is-menu-open
+    .floating-navigation__content {
+    max-height: 420px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top-color: var(--color-border);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  /* Stack all five options vertically. */
+
+  .floating-navigation__links {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 4px;
+    width: 100%;
+    overflow: visible;
+  }
+
+  .floating-navigation__link {
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+    min-height: 46px;
+    padding-inline: 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    text-align: left;
+  }
+
+  .floating-navigation__link i {
+    width: 22px;
+    flex: 0 0 22px;
+    font-size: 18px;
+  }
+
+  /*
+   * Theme control appears inside the expanded menu,
+   * keeping the top row simple.
+   */
+
+  .floating-navigation__theme-toggle {
+    align-self: flex-end;
+    margin-top: 4px;
+  }
+}
+
+/* ========================================
+   Reduced-motion support
+======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-navigation__menu-toggle,
+  .floating-navigation__logo,
+  .floating-navigation__link,
+  .floating-navigation__theme-toggle,
+  .floating-navigation__content {
+    transition: none;
+  }
+}
