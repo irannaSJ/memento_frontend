@@ -289,3 +289,134 @@
 .record-card-grid > .record-page__loading {
   grid-column: 1 / -1;
 }
+
+
+
+
+
+/* Related to Gsap */
+
+/* GSAP-friendly page interactions */
+
+.record-page__back {
+  transition:
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.record-page__back:hover {
+  transform: translateX(-3px);
+}
+
+.record-page__heading h1 {
+  text-wrap: balance;
+}
+
+.record-page__toolbar {
+  position: relative;
+  z-index: 2;
+}
+
+.record-page__search {
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.record-page__search:focus-within {
+  border-color: var(--color-focus);
+  box-shadow:
+    0 0 0 3px
+    color-mix(in srgb, var(--color-focus) 13%, transparent);
+}
+
+.record-page__search button {
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.record-page__search button:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.record-page__search button:active {
+  transform: scale(0.97);
+}
+
+.record-page__secondary-button {
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+
+.record-page__secondary-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.record-page__summary {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.record-page__summary::after {
+  position: absolute;
+  z-index: -1;
+  top: -70px;
+  right: -45px;
+  width: 190px;
+  height: 190px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-focus) 9%, transparent),
+    transparent 70%
+  );
+  content: "";
+  pointer-events: none;
+}
+
+.record-page__summary > * {
+  position: relative;
+}
+
+.record-page__loading {
+  animation: record-page-state-enter 320ms ease both;
+}
+
+@keyframes record-page-state-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .record-page__back,
+  .record-page__search,
+  .record-page__search button,
+  .record-page__secondary-button {
+    transition: none;
+  }
+
+  .record-page__back:hover,
+  .record-page__search button:hover,
+  .record-page__secondary-button:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .record-page__loading {
+    animation: none;
+  }
+}

@@ -1,8 +1,6 @@
-import {
-  useEffect,
-  useState,
-  type FormEvent,
-} from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import gsap from 'gsap'
+import { useNavigate } from 'react-router-dom'
 
 import {
   mementoApi,
@@ -10,12 +8,8 @@ import {
   type MementoRecord,
   type PaginationInfo,
 } from '../../services/mementoApi'
-
 import type { FeatureDefinition } from '../home/featureData'
-
 import { RecordTable } from '../../components/list/RecordTable'
-
-import { useNavigate } from 'react-router-dom'
 import { RecordCard } from '../../components/list/RecordCard'
 import { RecordUpdateDialog } from '../../components/form/RecordUpdateDialog'
 
@@ -23,42 +17,10 @@ import './RecordPage.css'
 
 const PAGE_LENGTH = 20
 
-/**
- * Connects existing homepage feature IDs to approved backend DocTypes.
- * All records and field definitions still come from the backend.
- */
-// const FEATURE_DOCTYPES: Record<FeatureId, string> = {
-//   projects: 'My Projects',
-//   tasks: 'Tasks',
-//   todo: 'Daily ToDo',
-//   activity: 'Task Log',
-// }
-
-
 interface RecordPageProps {
   feature: FeatureDefinition
   onBack: () => void
 }
-
-
-// function plainTextForDelete(value: unknown): string {
-//   if (typeof value !== 'string') {
-//     return value == null ? '' : String(value)
-//   }
-
-//   if (typeof document === 'undefined') {
-//     return value
-//   }
-
-//   const parsed = new DOMParser().parseFromString(
-//     value,
-//     'text/html',
-//   )
-
-//   return (parsed.body.textContent ?? value)
-//     .replace(/\s+/g, ' ')
-//     .trim()
-// }
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
@@ -68,60 +30,141 @@ function getErrorMessage(error: unknown): string {
   return 'Something went wrong while loading records.'
 }
 
-export function RecordPage({
-  feature,
-  onBack,
-}: RecordPageProps) {
-  // const doctype = FEATURE_DOCTYPES[feature.id]
+export function RecordPage({ feature, onBack }: RecordPageProps) {
   const doctype = feature.doctype
   const navigate = useNavigate()
+  const pageRef = useRef<HTMLElement>(null)
 
-  const isCardFeature =
-    feature.id === 'projects' || feature.id === 'tasks'
+  const isCardFeature = feature.id === 'projects' || feature.id === 'tasks'
 
-  const [metadata, setMetadata] =
-    useState<DocTypeMetadata | null>(null)
-
-  const [records, setRecords] =
-    useState<MementoRecord[]>([])
-
-  const [pagination, setPagination] =
-    useState<PaginationInfo | null>(null)
-
-
-  const [editingRecordName, setEditingRecordName] =
-    useState<string | null>(null)
-
-  // const [deleteError, setDeleteError] =
-  //   useState<string | null>(null)
-
-  const [actionMessage, setActionMessage] =
-    useState<string | null>(null)
-
+  const [metadata, setMetadata] = useState<DocTypeMetadata | null>(null)
+  const [records, setRecords] = useState<MementoRecord[]>([])
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null)
+  const [editingRecordName, setEditingRecordName] = useState<string | null>(null)
+  const [actionMessage, setActionMessage] = useState<string | null>(null)
   const [searchInput, setSearchInput] = useState('')
   const [activeSearch, setActiveSearch] = useState('')
   const [start, setStart] = useState(0)
 
   const [metadataLoading, setMetadataLoading] = useState(true)
   const [recordsLoading, setRecordsLoading] = useState(true)
-
-  const [metadataError, setMetadataError] = useState<string | null>(
-    null,
-  )
-
-  const [recordsError, setRecordsError] = useState<string | null>(
-    null,
-  )
-
+  const [metadataError, setMetadataError] = useState<string | null>(null)
+  const [recordsError, setRecordsError] = useState<string | null>(null)
   const [metadataRefreshKey, setMetadataRefreshKey] = useState(0)
   const [recordsRefreshKey, setRecordsRefreshKey] = useState(0)
+
+  // Stores which feature has completed its top-section entrance animation.
+  // This also handles navigation between Projects and Tasks when this component
+  // instance is reused by the router.
+  const [introFeatureId, setIntroFeatureId] = useState<string | null>(null)
+
+  // Animate the top section of Projects and Tasks on entry.
+  useEffect(() => {
+    if (!isCardFeature) return
+
+    const root = pageRef.current
+    if (!root) return
+
+    const reduceMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches
+
+    // Keep content visible and skip animation for reduced-motion preferences.
+    if (reduceMotion) return
+
+    const context = gsap.context(() => {
+      const timeline = gsap.timeline({
+        defaults: { ease: 'power2.out' },
+        onComplete: () => setIntroFeatureId(feature.id),
+      })
+
+      timeline
+        .fromTo(
+          '.record-page__back',
+          { autoAlpha: 0, y: 8 },
+          { autoAlpha: 1, y: 0, duration: 0.2 },
+        )
+        .fromTo(
+          '.record-page__heading > *',
+          { autoAlpha: 0, y: 10 },
+          {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.25,
+            stagger: 0.04,
+          },
+          '-=0.08',
+        )
+        .fromTo(
+          '.record-page__toolbar',
+          { autoAlpha: 0, y: 8 },
+          { autoAlpha: 1, y: 0, duration: 0.23 },
+          '-=0.08',
+        )
+        .fromTo(
+          '.record-page__summary',
+          { autoAlpha: 0, y: 6 },
+          { autoAlpha: 1, y: 0, duration: 0.2 },
+          '-=0.06',
+        )
+    }, root)
+
+    return () => context.revert()
+  }, [feature.id, isCardFeature])
+
+  // Reveal records only after the top section has finished and the current
+  // request has completed. This prevents the cards from appearing too early.
+  useEffect(() => {
+    if (!isCardFeature || recordsLoading || !metadata) return
+
+    const root = pageRef.current
+    if (!root) return
+
+    const reduceMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches
+
+    if (reduceMotion) return
+
+    // If the intro has not completed for this feature, wait for its timeline.
+    if (introFeatureId !== feature.id) return
+
+    const context = gsap.context(() => {
+      const cards = gsap.utils.toArray<HTMLElement>('.record-card')
+      if (cards.length === 0) return
+
+      gsap.fromTo(
+        cards,
+        {
+          autoAlpha: 0,
+          y: 16,
+          scale: 0.99,
+        },
+        {
+          autoAlpha: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.3,
+          stagger: 0.045,
+          ease: 'power2.out',
+          clearProps: 'opacity,visibility,transform',
+        },
+      )
+    }, root)
+
+    return () => context.revert()
+  }, [
+    records,
+    recordsLoading,
+    metadata,
+    isCardFeature,
+    introFeatureId,
+    feature.id,
+  ])
 
   // Load the visible list columns and field metadata.
   useEffect(() => {
     let cancelled = false
-
-    // setMetadataLoading(true)
-    // setMetadataError(null)
 
     void mementoApi
       .getDocTypeMetadata(doctype, 'list')
@@ -146,12 +189,9 @@ export function RecordPage({
     }
   }, [doctype, metadataRefreshKey])
 
-  // Load records whenever search, page, or refresh state changes.
+  // Load records whenever search, page, feature, or refresh state changes.
   useEffect(() => {
     let cancelled = false
-
-    // setRecordsLoading(true)
-    // setRecordsError(null)
 
     void mementoApi
       .getDocTypeRecords({
@@ -193,86 +233,33 @@ export function RecordPage({
     setRecordsError(null)
 
     if (nextSearch === activeSearch && start === 0) {
-        setRecordsRefreshKey((value) => value + 1)
-        return
+      setRecordsRefreshKey((value) => value + 1)
+      return
     }
 
     setStart(0)
     setActiveSearch(nextSearch)
-    }
+  }
 
+  function clearSearch() {
+    setSearchInput('')
 
-    function clearSearch() {
-        setSearchInput('')
+    if (activeSearch === '' && start === 0) return
 
-        if (activeSearch === '' && start === 0) {
-            return
-        }
-
-        setRecordsLoading(true)
-        setRecordsError(null)
-        setStart(0)
-        setActiveSearch('')
-        }
-
-
-
-
-  // async function handleDeleteRecord(record: MementoRecord) {
-  //   if (
-  //     !isCardFeature ||
-  //     !metadata?.capabilities.can_delete ||
-  //     deletingRecordName !== null
-  //   ) {
-  //     return
-  //   }
-
-  //   const recordTitle = plainTextForDelete(
-  //     feature.id === 'projects'
-  //       ? record.project_name
-  //       : record.task_name,
-  //   ) || record.name
-
-  //   const confirmed = window.confirm(
-  //     `Delete "${recordTitle}"? This action cannot be undone.`,
-  //   )
-
-  //   if (!confirmed) return
-
-  //   setDeletingRecordName(record.name)
-  //   setDeleteError(null)
-  //   setActionMessage(null)
-
-  //   try {
-  //     const response = await mementoApi.deleteDocTypeRecord(
-  //       doctype,
-  //       record.name,
-  //     )
-
-  //     setRecords((current) =>
-  //       current.filter((item) => item.name !== record.name),
-  //     )
-
-  //     setActionMessage(
-  //       response.message ?? `"${recordTitle}" was deleted.`,
-  //     )
-
-  //     if (records.length === 1 && start > 0) {
-  //       setStart((current) => Math.max(0, current - PAGE_LENGTH))
-  //     } else {
-  //       setRecordsRefreshKey((current) => current + 1)
-  //     }
-  //   } catch (error: unknown) {
-  //     setDeleteError(getErrorMessage(error))
-  //   } finally {
-  //     setDeletingRecordName(null)
-  //   }
-  // }
+    setRecordsLoading(true)
+    setRecordsError(null)
+    setStart(0)
+    setActiveSearch('')
+  }
 
   const pageNumber = Math.floor(start / PAGE_LENGTH) + 1
 
   return (
-    <section className="record-page" aria-labelledby="record-page-title">
+    <section
+      ref={pageRef}
+      className="record-page"
+      aria-labelledby="record-page-title"
+    >
       <div className="record-page__header">
         <button
           type="button"
@@ -284,9 +271,7 @@ export function RecordPage({
         </button>
 
         <div className="record-page__heading">
-          <span className="record-page__eyebrow">
-            MEMENTO / WORKSPACE
-          </span>
+          <span className="record-page__eyebrow">MEMENTO / WORKSPACE</span>
 
           <h1 id="record-page-title">
             {metadata?.label ?? feature.itemPlural}
@@ -329,10 +314,10 @@ export function RecordPage({
             className="record-page__secondary-button"
             disabled={recordsLoading}
             onClick={() => {
-                setRecordsLoading(true)
-                setRecordsError(null)
-                setRecordsRefreshKey((value) => value + 1)
-                }}
+              setRecordsLoading(true)
+              setRecordsError(null)
+              setRecordsRefreshKey((value) => value + 1)
+            }}
           >
             <i className="ri-refresh-line" aria-hidden="true" />
             Refresh
@@ -340,29 +325,12 @@ export function RecordPage({
         </div>
       </div>
 
-
       {actionMessage && (
         <div className="record-page__notice" role="status">
           <i className="ri-checkbox-circle-line" aria-hidden="true" />
           {actionMessage}
         </div>
       )}
-
-      {/* {deleteError && (
-        <div className="record-page__error" role="alert">
-          <div>
-            <strong>Unable to delete record</strong>
-            <p>{deleteError}</p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setDeleteError(null)}
-          >
-            Dismiss
-          </button>
-        </div>
-      )} */}
 
       {metadataError && (
         <div className="record-page__error" role="alert">
@@ -374,10 +342,10 @@ export function RecordPage({
           <button
             type="button"
             onClick={() => {
-                setMetadataLoading(true)
-                setMetadataError(null)
-                setMetadataRefreshKey((value) => value + 1)
-                }}
+              setMetadataLoading(true)
+              setMetadataError(null)
+              setMetadataRefreshKey((value) => value + 1)
+            }}
           >
             Retry
           </button>
@@ -394,10 +362,10 @@ export function RecordPage({
           <button
             type="button"
             onClick={() => {
-                setRecordsLoading(true)
-                setRecordsError(null)
-                setRecordsRefreshKey((value) => value + 1)
-                }}
+              setRecordsLoading(true)
+              setRecordsError(null)
+              setRecordsRefreshKey((value) => value + 1)
+            }}
           >
             Retry
           </button>
@@ -406,10 +374,7 @@ export function RecordPage({
 
       <div className="record-page__summary">
         <div>
-          <span className="record-page__summary-label">
-            CURRENT PAGE
-          </span>
-
+          <span className="record-page__summary-label">CURRENT PAGE</span>
           <strong>{String(pageNumber).padStart(2, '0')}</strong>
         </div>
 
@@ -435,9 +400,7 @@ export function RecordPage({
               updating={editingRecordName !== null}
               isUpdating={editingRecordName === record.name}
               onReadMore={() => {
-                navigate(
-                  `/${feature.id}/${encodeURIComponent(record.name)}`,
-                )
+                navigate(`/${feature.id}/${encodeURIComponent(record.name)}`)
               }}
               onUpdate={() => setEditingRecordName(record.name)}
             />
@@ -480,10 +443,10 @@ export function RecordPage({
             className="record-page__secondary-button"
             disabled={start === 0 || recordsLoading}
             onClick={() => {
-                setRecordsLoading(true)
-                setRecordsError(null)
-                setStart((value) => Math.max(0, value - PAGE_LENGTH))
-                }}
+              setRecordsLoading(true)
+              setRecordsError(null)
+              setStart((value) => Math.max(0, value - PAGE_LENGTH))
+            }}
           >
             <i className="ri-arrow-left-line" aria-hidden="true" />
             Previous
@@ -492,23 +455,20 @@ export function RecordPage({
           <button
             type="button"
             className="record-page__secondary-button"
-            disabled={
-              !pagination?.has_more || recordsLoading
-            }
+            disabled={!pagination?.has_more || recordsLoading}
             onClick={() => {
-                if (pagination?.next_start == null) return
+              if (pagination?.next_start == null) return
 
-                setRecordsLoading(true)
-                setRecordsError(null)
-                setStart(pagination.next_start)
-                }}
+              setRecordsLoading(true)
+              setRecordsError(null)
+              setStart(pagination.next_start)
+            }}
           >
             Next
             <i className="ri-arrow-right-line" aria-hidden="true" />
           </button>
         </div>
       </div>
-
 
       {editingRecordName && (
         <RecordUpdateDialog
@@ -520,9 +480,7 @@ export function RecordPage({
             setEditingRecordName(null)
             setRecordsLoading(true)
             setRecordsError(null)
-            setActionMessage(
-              `Record ${result.name} updated successfully.`,
-            )
+            setActionMessage(`Record ${result.name} updated successfully.`)
             setRecordsRefreshKey((value) => value + 1)
           }}
         />

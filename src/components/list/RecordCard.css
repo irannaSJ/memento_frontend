@@ -273,3 +273,69 @@
     min-width: 100px;
   }
 }
+
+
+
+
+/* Related to GSAP */
+/* Card interaction polish */
+
+.record-card {
+  transform-origin: center;
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    background 220ms ease;
+}
+
+.record-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-focus);
+  box-shadow: 0 14px 34px rgb(20 25 40 / 9%);
+}
+
+.record-card__icon {
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    background 220ms ease,
+    color 220ms ease;
+}
+
+.record-card:hover .record-card__icon {
+  transform: rotate(-4deg) scale(1.05);
+  border-color:
+    color-mix(in srgb, var(--color-focus) 35%, var(--color-border));
+  background:
+    color-mix(in srgb, var(--color-focus) 9%, var(--color-surface-raised));
+  color: var(--color-focus);
+}
+
+.record-card__read-more > i {
+  display: inline-block;
+  transition: transform 180ms ease;
+}
+
+.record-card__read-more:hover > i {
+  transform: translateX(3px);
+}
+
+.record-card__read-more:active,
+.record-card__update:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .record-card,
+  .record-card__icon,
+  .record-card__read-more > i {
+    transition: none;
+  }
+
+  .record-card:hover,
+  .record-card:hover .record-card__icon,
+  .record-card__read-more:hover > i {
+    transform: none;
+  }
+}
