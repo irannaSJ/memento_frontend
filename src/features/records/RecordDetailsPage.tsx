@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import DOMPurify from 'dompurify'
 
 import {
   mementoApi,
@@ -218,7 +219,20 @@ export function RecordDetailPage({
     isProject ? record.project_name : record.task_name,
   )
 
+  const rawDescriptionHtml =
+    typeof record.description === 'string'
+      ? record.description
+      : ''
+
+  const safeDescriptionHtml = DOMPurify.sanitize(
+    rawDescriptionHtml,
+    {
+      USE_PROFILES: { html: true },
+    },
+  )
+
   const description = plainText(record.description)
+
 
   const detailFields: DetailField[] = isProject
     ? [
@@ -385,9 +399,19 @@ export function RecordDetailPage({
           {isProject ? 'Project Description' : 'Task Description'}
         </h2>
 
-        <p className="record-detail__description">
-          {description}
-        </p>
+        {safeDescriptionHtml.trim() &&
+        description !== 'Not set' ? (
+          <div
+            className="record-detail__description"
+            dangerouslySetInnerHTML={{
+              __html: safeDescriptionHtml,
+            }}
+          />
+        ) : (
+          <p className="record-detail__description">
+            No description has been added yet.
+          </p>
+        )}
       </section>
 
 

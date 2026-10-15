@@ -1,4 +1,8 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import {
+  useEffect,
+  useState,
+  type FormEvent,
+} from 'react'
 
 import {
   mementoApi,
@@ -10,21 +14,23 @@ import {
 } from '../../services/mementoApi'
 
 import { FieldRenderer } from './FieldRenderer'
+import type { PendingEditorImage } from './RichTextEditor'
+
 import './MetadataDrivenForm.css'
 
 type FormMode = 'create' | 'update'
-
 type FormValues = Record<string, unknown>
 
-interface MetadataDrivenFormProps {
-  doctype: string
-  mode: FormMode
-  recordName?: string
-  onCancel: () => void
-  onSuccess: (record: RecordMutationResult) => void
-}
+const TABLE_FIELD_TYPES = new Set([
+  'Table',
+  'Table MultiSelect',
+])
 
-const TABLE_FIELD_TYPES = new Set(['Table', 'Table MultiSelect'])
+const JSON_FIELD_TYPES = new Set([
+  'JSON',
+  'Table',
+  'Table MultiSelect',
+])
 
 function localDate(): string {
   const date = new Date()
@@ -36,8 +42,10 @@ function localDate(): string {
 }
 
 function localDateTime(): string {
-  return `${localDate()}T${String(new Date().getHours()).padStart(2, '0')}:${String(
-    new Date().getMinutes(),
+  const date = new Date()
+
+  return `${localDate()}T${String(date.getHours()).padStart(2, '0')}:${String(
+    date.getMinutes(),
   ).padStart(2, '0')}`
 }
 
@@ -52,11 +60,14 @@ function getInitialValue(
   if (hasRecordValue) {
     const value = record[field.fieldname]
 
-    if (TABLE_FIELD_TYPES.has(field.fieldtype)) {
+    if (JSON_FIELD_TYPES.has(field.fieldtype)) {
       return JSON.stringify(value ?? [], null, 2)
     }
 
-    if (field.fieldtype === 'Datetime' && typeof value === 'string') {
+    if (
+      field.fieldtype === 'Datetime' &&
+      typeof value === 'string'
+    ) {
       return value.replace(' ', 'T').slice(0, 16)
     }
 
@@ -80,12 +91,8 @@ function getInitialValue(
       return localDateTime()
     }
 
-    if (TABLE_FIELD_TYPES.has(field.fieldtype)) {
-      return JSON.stringify(field.default, null, 2)
-    }
-
     if (
-      field.fieldtype === 'JSON' &&
+      JSON_FIELD_TYPES.has(field.fieldtype) &&
       typeof field.default === 'object'
     ) {
       return JSON.stringify(field.default, null, 2)
@@ -109,6 +116,90 @@ function getInitialValue(
   return ''
 }
 
+/**
+ * Removes temporary browser blob images before saving a record.
+ * Temporary preview URLs must never be persisted in Frappe.
+ */
+function stripTemporaryImageHtml(html: string): string {
+  if (!html) return '<p></p>'
+
+  const parsed = new DOMParser().parseFromString(
+    html,
+    'text/html',
+  )
+
+  parsed.querySelectorAll('img').forEach((image) => {
+    const src = image.getAttribute('src') ?? ''
+
+    if (src.startsWith('blob:')) {
+      image.remove()
+    }
+  })
+
+  return parsed.body.innerHTML.trim() || '<p></p>'
+}
+
+/**
+ * Replaces temporary preview URLs with permanent Frappe file URLs.
+ * Any blob image without a completed upload is removed.
+ */
+function resolveTemporaryImageUrls(
+  html: string,
+  uploadedUrls: Record<string, string>,
+): string {
+  if (!html) return '<p></p>'
+
+  const parsed = new DOMParser().parseFromString(
+    html,
+    'text/html',
+  )
+
+  parsed.querySelectorAll('img').forEach((image) => {
+    const src = image.getAttribute('src') ?? ''
+
+    if (!src.startsWith('blob:')) {
+      return
+    }
+
+    const permanentUrl = uploadedUrls[src]
+
+    if (permanentUrl) {
+      image.setAttribute('src', permanentUrl)
+    } else {
+      image.remove()
+    }
+  })
+
+  return parsed.body.innerHTML.trim() || '<p></p>'
+}
+
+function isEmptyFieldValue(
+  field: FieldMetadata,
+  value: unknown,
+): boolean {
+  if (value === undefined || value === null) {
+    return true
+  }
+
+  if (typeof value !== 'string') {
+    return false
+  }
+
+  if (field.fieldtype === 'Text Editor') {
+    const parsed = new DOMParser().parseFromString(
+      value,
+      'text/html',
+    )
+
+    return (
+      !parsed.body.textContent?.trim() &&
+      !parsed.body.querySelector('img')
+    )
+  }
+
+  return !value.trim()
+}
+
 function buildPayload(
   fields: FieldMetadata[],
   values: FormValues,
@@ -123,12 +214,7 @@ function buildPayload(
 
     const value = values[field.fieldname]
 
-    if (
-      field.required &&
-      (value === undefined ||
-        value === null ||
-        (typeof value === 'string' && !value.trim()))
-    ) {
+    if (field.required && isEmptyFieldValue(field, value)) {
       throw new Error(`${field.label} is required.`)
     }
 
@@ -146,28 +232,7 @@ function buildPayload(
       continue
     }
 
-    if (TABLE_FIELD_TYPES.has(field.fieldtype)) {
-      let rows: unknown
-
-      try {
-        rows = typeof value === 'string' ? JSON.parse(value) : value
-      } catch {
-        throw new Error(
-          `${field.label} must contain valid JSON.`,
-        )
-      }
-
-      if (!Array.isArray(rows)) {
-        throw new Error(
-          `${field.label} must be a JSON array.`,
-        )
-      }
-
-      payload[field.fieldname] = rows
-      continue
-    }
-
-    if (field.fieldtype === 'JSON') {
+    if (JSON_FIELD_TYPES.has(field.fieldtype)) {
       if (typeof value === 'string' && !value.trim()) {
         if (mode === 'update') {
           payload[field.fieldname] = ''
@@ -177,21 +242,51 @@ function buildPayload(
       }
 
       try {
-        payload[field.fieldname] =
-          typeof value === 'string' ? JSON.parse(value) : value
-      } catch {
+        const parsed =
+          typeof value === 'string'
+            ? JSON.parse(value)
+            : value
+
+        if (
+          TABLE_FIELD_TYPES.has(field.fieldtype) &&
+          !Array.isArray(parsed)
+        ) {
+          throw new Error(
+            `${field.label} must be a JSON array.`,
+          )
+        }
+
+        payload[field.fieldname] = parsed
+      } catch (error : unknown) {
+        // if (
+        //   error instanceof Error &&
+        //   error.message === `${field.label} must be a JSON array.`
+        // ) {
+        //   throw error
+        // }
         throw new Error(
-          `${field.label} must contain valid JSON.`,
+          `Image upload failed : ${getErrorMessage(error)}`,{cause : error},
         )
+
+        // throw new Error(
+        //   `${field.label} must contain valid JSON.`,
+        // )
       }
 
       continue
     }
 
+    if (
+      field.fieldtype === 'Datetime' &&
+      typeof value === 'string'
+    ) {
+      payload[field.fieldname] = value.replace('T', ' ')
+      continue
+    }
+
     if (typeof value === 'string' && value.trim() === '') {
-      // Omit empty optional fields during creation so Frappe can
-      // apply its normal defaults. During updates, an empty value
-      // intentionally clears the field.
+      // Omit empty optional fields at creation so backend defaults apply.
+      // For updates, send the empty string to clear the field.
       if (mode === 'update') {
         payload[field.fieldname] = ''
       }
@@ -219,16 +314,36 @@ export function MetadataDrivenForm({
   recordName,
   onCancel,
   onSuccess,
-}: MetadataDrivenFormProps) {
+}: {
+  doctype: string
+  mode: FormMode
+  recordName?: string
+  onCancel: () => void
+  onSuccess: (record: RecordMutationResult) => void
+}) {
   const purpose: MetadataPurpose = mode
 
-  const [metadata, setMetadata] = useState<DocTypeMetadata | null>(null)
+  const [metadata, setMetadata] =
+    useState<DocTypeMetadata | null>(null)
+
   const [values, setValues] = useState<FormValues>({})
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [retryKey, setRetryKey] = useState(0)
+
+  // Images selected before a new record exists.
+  const [pendingImages, setPendingImages] =
+    useState<PendingEditorImage[]>([])
+
+  // Retained after partial failure so retry won't create a duplicate.
+  const [createdRecordForImages, setCreatedRecordForImages] =
+    useState<RecordMutationResult | null>(null)
+
+  // Successful uploads are retained across retries.
+  const [uploadedImageUrls, setUploadedImageUrls] =
+    useState<Record<string, string>>({})
 
   useEffect(() => {
     let cancelled = false
@@ -251,7 +366,6 @@ export function MetadataDrivenForm({
 
         const nextMetadata = metadataResponse.data
         const currentRecord = recordResponse?.data
-
         const initialValues: FormValues = {}
 
         for (const field of nextMetadata.fields) {
@@ -287,13 +401,71 @@ export function MetadataDrivenForm({
     }))
   }
 
+  function handlePendingImagesChange(
+    fieldname: string,
+    fieldImages: PendingEditorImage[],
+  ) {
+    setPendingImages((current) => [
+      ...current.filter(
+        (image) => image.fieldname !== fieldname,
+      ),
+      ...fieldImages,
+    ])
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
     if (!metadata || submitting) return
 
+    const canSubmit =
+      mode === 'create'
+        ? metadata.capabilities.can_create
+        : metadata.capabilities.can_update
+
+    if (!canSubmit) {
+      setSubmitError(
+        `You do not have permission to ${mode} ${metadata.label.toLowerCase()}.`,
+      )
+      return
+    }
+
+    const stagedFieldnames = [
+      ...new Set(pendingImages.map((image) => image.fieldname)),
+    ]
+
+    // Upload only staged images that are still in the current HTML.
+    const imagesToUpload =
+      mode === 'create'
+        ? pendingImages.filter((image) => {
+            const html = values[image.fieldname]
+
+            return (
+              typeof html === 'string' &&
+              html.includes(image.previewUrl)
+            )
+          })
+        : []
+
+    const retryingCreatedRecord =
+      mode === 'create' && createdRecordForImages !== null
+
+    // Saving a record with embedded images needs update permission too,
+    // because the final HTML is saved after the images are uploaded.
+    if (
+      (imagesToUpload.length > 0 || retryingCreatedRecord) &&
+      !metadata.capabilities.can_update
+    ) {
+      setSubmitError(
+        'You need update permission to save a record with embedded images.',
+      )
+      return
+    }
+
     setSubmitting(true)
     setSubmitError(null)
+
+    let savedRecord: RecordMutationResult | null = null
 
     try {
       const payload = buildPayload(
@@ -302,29 +474,153 @@ export function MetadataDrivenForm({
         mode,
       )
 
-      const canSubmit =
-        mode === 'create'
-          ? metadata.capabilities.can_create
-          : metadata.capabilities.can_update
+      if (mode === 'create') {
+        if (createdRecordForImages) {
+          // A prior attempt already created the record.
+          // Update its regular fields before retrying failed uploads.
+          savedRecord = createdRecordForImages
 
-      if (!canSubmit) {
+          const retryPayload: FormValues = { ...payload }
+
+          for (const fieldname of stagedFieldnames) {
+            const fieldValue = retryPayload[fieldname]
+
+            if (typeof fieldValue === 'string') {
+              retryPayload[fieldname] =
+                stripTemporaryImageHtml(fieldValue)
+            }
+          }
+
+          await mementoApi.updateDocTypeRecord(
+            doctype,
+            savedRecord.name,
+            retryPayload,
+          )
+        } else {
+          // Never send temporary browser blob URLs to Frappe.
+          const createPayload: FormValues = { ...payload }
+
+          for (const fieldname of stagedFieldnames) {
+            const fieldValue = createPayload[fieldname]
+
+            if (typeof fieldValue === 'string') {
+              createPayload[fieldname] =
+                stripTemporaryImageHtml(fieldValue)
+            }
+          }
+
+          const createResponse =
+            await mementoApi.createDocTypeRecord(
+              doctype,
+              createPayload,
+            )
+
+          savedRecord = createResponse.data
+
+          if (imagesToUpload.length > 0) {
+            setCreatedRecordForImages(savedRecord)
+          }
+        }
+
+        const needsImageFinalization =
+          imagesToUpload.length > 0 || retryingCreatedRecord
+
+        if (needsImageFinalization) {
+          if (!savedRecord) {
+            throw new Error(
+              'The created record could not be identified.',
+            )
+          }
+
+          const resolvedUrls = { ...uploadedImageUrls }
+
+          // Upload each currently used image once.
+          for (const image of imagesToUpload) {
+            if (resolvedUrls[image.previewUrl]) {
+              continue
+            }
+
+            const uploadedFile = await mementoApi.uploadFile(
+              image.file,
+              {
+                doctype,
+                docname: savedRecord.name,
+              },
+            )
+
+            resolvedUrls[image.previewUrl] =
+              uploadedFile.file_url
+
+            setUploadedImageUrls({ ...resolvedUrls })
+          }
+
+          // Restore HTML, substituting permanent file URLs for previews.
+          const descriptionPayload: FormValues = {}
+
+          for (const fieldname of stagedFieldnames) {
+            const fieldValue = values[fieldname]
+
+            const html =
+              typeof fieldValue === 'string'
+                ? fieldValue
+                : ''
+
+            descriptionPayload[fieldname] =
+              resolveTemporaryImageUrls(html, resolvedUrls)
+          }
+
+          if (Object.keys(descriptionPayload).length > 0) {
+            await mementoApi.updateDocTypeRecord(
+              doctype,
+              savedRecord.name,
+              descriptionPayload,
+            )
+          }
+
+          setCreatedRecordForImages(null)
+        }
+      } else {
+        if (!recordName) {
+          throw new Error(
+            'A record name is required to update a record.',
+          )
+        }
+
+        const updateResponse =
+          await mementoApi.updateDocTypeRecord(
+            doctype,
+            recordName,
+            payload,
+          )
+
+        savedRecord = updateResponse.data
+      }
+
+      if (!savedRecord) {
         throw new Error(
-          `You do not have permission to ${mode} ${metadata.label.toLowerCase()}.`,
+          'The record was saved without a record identifier.',
         )
       }
 
-      const response =
-        mode === 'create'
-          ? await mementoApi.createDocTypeRecord(doctype, payload)
-          : await mementoApi.updateDocTypeRecord(
-              doctype,
-              recordName!,
-              payload,
-            )
-
-      onSuccess(response.data)
+      onSuccess(savedRecord)
     } catch (error: unknown) {
-      setSubmitError(getErrorMessage(error))
+      const errorMessage = getErrorMessage(error)
+
+      // A record may already exist if an image upload or the final
+      // description update failed. Preserve it for a safe retry.
+      if (
+        mode === 'create' &&
+        savedRecord &&
+        (imagesToUpload.length > 0 || retryingCreatedRecord)
+      ) {
+        setCreatedRecordForImages(savedRecord)
+
+        setSubmitError(
+          `Record "${savedRecord.name}" was created, but image uploading or the final description save failed. Submit again to retry without creating a duplicate. Details: ${errorMessage}`,
+        )
+      } else {
+        setSubmitError(errorMessage)
+      }
     } finally {
       setSubmitting(false)
     }
@@ -379,6 +675,13 @@ export function MetadataDrivenForm({
     (field) => !field.hidden,
   )
 
+  const submitLabel =
+    mode === 'create'
+      ? createdRecordForImages
+        ? 'Retry image upload'
+        : 'Create'
+      : 'Save changes'
+
   return (
     <form
       className="feature-dialog__form metadata-form"
@@ -406,6 +709,16 @@ export function MetadataDrivenForm({
             key={field.fieldname}
             field={field}
             value={values[field.fieldname]}
+            doctype={doctype}
+            docname={mode === 'update' ? recordName : undefined}
+            editable={canSubmit}
+            allowPendingImages={mode === 'create'}
+            onPendingImagesChange={(fieldImages) =>
+              handlePendingImagesChange(
+                field.fieldname,
+                fieldImages,
+              )
+            }
             onChange={(value) =>
               updateField(field.fieldname, value)
             }
@@ -444,7 +757,7 @@ export function MetadataDrivenForm({
                 }
                 aria-hidden="true"
               />
-              {mode === 'create' ? 'Create' : 'Save changes'}
+              {submitLabel}
             </>
           )}
         </button>

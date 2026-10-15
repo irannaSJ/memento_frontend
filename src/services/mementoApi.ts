@@ -90,6 +90,22 @@ export interface RecordMutationResult {
 }
 
 
+
+export interface UploadedFile {
+  name: string
+  file_name: string
+  file_url: string
+  is_private: number | boolean
+  attached_to_doctype?: string | null
+  attached_to_name?: string | null
+}
+
+export interface FileUploadContext {
+  doctype: string
+  docname: string
+}
+
+
 export class MementoApiError extends Error{
     readonly statusCode : number;
     readonly details : unknown;
@@ -127,7 +143,7 @@ function getCsrfToken() : string | undefined {
         return frappeToken
     }
     const metaToken = document.querySelector<HTMLMetaElement>(
-        `meta[name="csrf-token]`,
+    'meta[name="csrf-token"]',
     )?.content;
 
     if (metaToken){
@@ -334,6 +350,99 @@ async function request<T>(
 }
 
 
+
+//description options
+
+async function uploadFileToFrappe(
+  file: File,
+  context: FileUploadContext,
+): Promise<UploadedFile> {
+  if (!context.doctype.trim() || !context.docname.trim()) {
+    throw new MementoApiError(
+      'Save the record before uploading images.',
+      400,
+    )
+  }
+
+  const formData = new FormData()
+
+  formData.append('file', file)
+  formData.append('doctype', context.doctype)
+  formData.append('docname', context.docname)
+  formData.append('is_private', '1')
+
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+  }
+
+  const csrfToken = getCsrfToken()
+
+  if (csrfToken) {
+    headers['X-Frappe-CSRF-Token'] = csrfToken
+  }
+
+  let response: Response
+
+  try {
+    response = await fetch(
+      `${window.location.origin}${API_BASE_PATH}upload_file`,
+      {
+        method: 'POST',
+        credentials: 'include',
+        headers,
+        body: formData,
+      },
+    )
+  } catch {
+    throw new MementoApiError(
+      'Unable to upload the image. Check your connection and try again.',
+      0,
+    )
+  }
+
+  const responseText = await response.text()
+  let body: unknown
+
+  if (responseText) {
+    try {
+      body = JSON.parse(responseText) as unknown
+    } catch {
+      body = responseText
+    }
+  }
+
+  if (!response.ok) {
+    throw new MementoApiError(
+      extractErrorMessage(
+        body,
+        `Image upload failed with HTTP status ${response.status}.`,
+      ),
+      response.status,
+      body,
+    )
+  }
+
+  const result =
+    isJsonObject(body) && 'message' in body
+      ? body.message
+      : body
+
+  if (
+    !isJsonObject(result) ||
+    typeof result.file_url !== 'string' ||
+    typeof result.name !== 'string'
+  ) {
+    throw new MementoApiError(
+      'Frappe uploaded the image but returned an unexpected response.',
+      response.status,
+      body,
+    )
+  }
+
+  return result as unknown as UploadedFile
+}
+
+
 //public api methods
 
 export const mementoApi = {
@@ -419,6 +528,14 @@ export const mementoApi = {
             "POST",
             {doctype,name},
         );
+    },
+
+
+    uploadFile(
+        file : File,
+        context : FileUploadContext,
+    ): Promise<UploadedFile>{
+        return uploadFileToFrappe(file,context)
     }
 
 }

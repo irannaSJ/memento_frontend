@@ -1,12 +1,25 @@
 import type { FieldMetadata } from '../../services/mementoApi'
 
+import {
+  RichTextEditor,
+  type PendingEditorImage,
+} from './RichTextEditor'
+
 interface FieldRendererProps {
   field: FieldMetadata
   value: unknown
   onChange: (value: unknown) => void
+  doctype?: string
+  docname?: string
+  editable?: boolean
+  allowPendingImages?: boolean
+  onPendingImagesChange?: (images: PendingEditorImage[]) => void
 }
 
-const TABLE_FIELD_TYPES = new Set(['Table', 'Table MultiSelect'])
+const TABLE_FIELD_TYPES = new Set([
+  'Table',
+  'Table MultiSelect',
+])
 
 function displayValue(value: unknown): string {
   if (value === null || value === undefined) {
@@ -14,7 +27,7 @@ function displayValue(value: unknown): string {
   }
 
   if (typeof value === 'object') {
-    return JSON.stringify(value, null, 2)
+    return JSON.stringify(value, null, 2) ?? ''
   }
 
   return String(value)
@@ -28,6 +41,11 @@ export function FieldRenderer({
   field,
   value,
   onChange,
+  doctype,
+  docname,
+  editable = true,
+  allowPendingImages = false,
+  onPendingImagesChange,
 }: FieldRendererProps) {
   if (field.hidden) {
     return null
@@ -35,7 +53,53 @@ export function FieldRenderer({
 
   const id = `memento-field-${field.fieldname}`
   const valueText = displayValue(value)
+  const disabled = !editable || field.read_only
+  const required = field.required && !disabled
 
+  // Rich-text field: formatting, links, and image handling.
+  if (field.fieldtype === 'Text Editor') {
+    return (
+      <div className="metadata-form__field">
+        <label htmlFor={id}>
+          <span>
+            {field.label}
+            {field.required && (
+              <span className="metadata-form__required"> *</span>
+            )}
+            {field.read_only && (
+              <span className="metadata-form__readonly">
+                {' '}
+                · Read only
+              </span>
+            )}
+          </span>
+        </label>
+
+        <RichTextEditor
+          id={id}
+          value={valueText}
+          onChange={onChange}
+          doctype={doctype}
+          docname={docname}
+          fieldname={field.fieldname}
+          editable={!disabled}
+          allowPendingImages={allowPendingImages}
+          onPendingImagesChange={onPendingImagesChange}
+        />
+
+        {field.description && (
+          <small
+            id={`${id}-help`}
+            className="metadata-form__help"
+          >
+            {field.description}
+          </small>
+        )}
+      </div>
+    )
+  }
+
+  // Checkbox field.
   if (field.fieldtype === 'Check') {
     return (
       <div className="metadata-form__field">
@@ -45,7 +109,7 @@ export function FieldRenderer({
             name={field.fieldname}
             type="checkbox"
             checked={isChecked(value)}
-            disabled={field.read_only}
+            disabled={disabled}
             onChange={(event) =>
               onChange(event.target.checked ? 1 : 0)
             }
@@ -71,8 +135,8 @@ export function FieldRenderer({
   const sharedProps = {
     id,
     name: field.fieldname,
-    required: field.required && !field.read_only,
-    disabled: field.read_only,
+    required,
+    disabled,
     'aria-describedby': field.description
       ? `${id}-help`
       : undefined,
@@ -110,7 +174,6 @@ export function FieldRenderer({
   } else if (
     field.fieldtype === 'Text' ||
     field.fieldtype === 'Small Text' ||
-    field.fieldtype === 'Text Editor' ||
     field.fieldtype === 'Code' ||
     field.fieldtype === 'JSON'
   ) {
@@ -154,7 +217,6 @@ export function FieldRenderer({
             ? '#000000'
             : inputValue
         }
-        min={inputType === 'number' ? 0 : undefined}
         step={
           field.fieldtype === 'Int'
             ? 1
@@ -205,7 +267,10 @@ export function FieldRenderer({
       </label>
 
       {field.description && (
-        <small id={`${id}-help`} className="metadata-form__help">
+        <small
+          id={`${id}-help`}
+          className="metadata-form__help"
+        >
           {field.description}
         </small>
       )}

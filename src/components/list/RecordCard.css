@@ -1,36 +1,41 @@
+/* One wide card per row */
 .record-card-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
   align-items: stretch;
-  gap: 20px;
 }
 
+/* Horizontal rectangular card */
 .record-card {
-  display: flex;
+  display: grid;
+  grid-template-columns: 125px minmax(0, 1fr) 145px;
+  align-items: stretch;
   min-width: 0;
-  flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--color-border);
-  border-radius: 20px;
+  border-radius: 18px;
   background: var(--color-surface);
   transition:
-    transform 180ms ease,
     border-color 180ms ease,
     box-shadow 180ms ease;
 }
 
 .record-card:hover {
-  transform: translateY(-3px);
   border-color: var(--color-focus);
-  box-shadow: 0 14px 38px rgb(20 25 40 / 7%);
+  box-shadow: 0 8px 26px rgb(20 25 40 / 6%);
 }
 
+/* Left section: icon and status */
 .record-card__top {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 22px 22px 0;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 22px;
+  border-right: 1px solid var(--color-border);
 }
 
 .record-card__icon {
@@ -40,35 +45,37 @@
   flex-shrink: 0;
   place-items: center;
   border: 1px solid var(--color-border);
-  border-radius: 14px;
+  border-radius: 13px;
   background: var(--color-surface-raised);
   color: var(--color-text);
   font-size: 20px;
 }
 
 .record-card__status {
-  max-width: 65%;
+  max-width: 100%;
   overflow: hidden;
-  padding: 6px 10px;
+  padding: 6px 9px;
   border: 1px solid var(--color-border);
   border-radius: 999px;
   background: var(--color-surface-raised);
   color: var(--color-text);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 650;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+/* Middle section: record information */
 .record-card__body {
   display: flex;
-  flex: 1;
   flex-direction: column;
-  padding: 21px 22px 18px;
+  justify-content: center;
+  min-width: 0;
+  padding: 22px 26px;
 }
 
 .record-card__eyebrow {
-  margin: 0 0 9px;
+  margin: 0 0 8px;
   color: var(--color-muted);
   font-size: 9px;
   font-weight: 700;
@@ -88,50 +95,48 @@
 
 .record-card__description {
   display: -webkit-box;
-  min-height: 60px;
-  margin: 12px 0 0;
+  margin: 9px 0 0;
   overflow: hidden;
   color: var(--color-muted);
   font-size: 12px;
-  line-height: 1.8;
+  line-height: 1.7;
   overflow-wrap: anywhere;
   -webkit-box-orient: vertical;
-  /* -webkit-line-clamp: 3; */
+  /* -webkit-line-clamp: 2; */
 }
 
 .record-card__tags {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
-  margin-top: 17px;
+  margin-top: 13px;
 }
 
 .record-card__tag {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 6px 9px;
+  max-width: 100%;
+  padding: 5px 9px;
   border: 1px solid var(--color-border);
   border-radius: 8px;
   color: var(--color-muted);
   font-size: 10px;
-  font-weight: 550;
   overflow-wrap: anywhere;
 }
 
 .record-card__dates {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: auto;
-  padding-top: 23px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-top: 15px;
 }
 
 .record-card__dates > div {
   display: flex;
-  min-width: 0;
+  min-width: 100px;
   flex-direction: column;
-  gap: 7px;
+  gap: 6px;
 }
 
 .record-card__dates span {
@@ -148,33 +153,39 @@
   overflow-wrap: anywhere;
 }
 
+/* Right section: actions */
 .record-card__actions {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
   gap: 10px;
-  padding: 15px 22px;
-  border-top: 1px solid var(--color-border);
+  min-width: 0;
+  padding: 20px 16px;
+  border-left: 1px solid var(--color-border);
   background: var(--color-surface-raised);
 }
 
 .record-card__read-more,
 .record-card__update {
   display: inline-flex;
-  min-height: 36px;
+  min-height: 38px;
   align-items: center;
   justify-content: center;
   gap: 7px;
+  padding: 9px 10px;
   border: 0;
   border-radius: 9px;
   font-family: inherit;
   font-size: 11px;
   font-weight: 650;
   cursor: pointer;
+  transition:
+    opacity 150ms ease,
+    background 150ms ease;
 }
 
 .record-card__read-more {
-  padding: 8px 10px;
   background: var(--color-text);
   color: var(--color-page);
 }
@@ -184,7 +195,6 @@
 }
 
 .record-card__update {
-  padding: 8px 9px;
   background: transparent;
   color: var(--color-muted);
 }
@@ -205,14 +215,61 @@
   outline-offset: 3px;
 }
 
-@media (max-width: 1100px) {
-  .record-card-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+/* Tablet: keep the card horizontal */
+@media (max-width: 760px) {
+  .record-card {
+    grid-template-columns: 95px minmax(0, 1fr) 115px;
+  }
+
+  .record-card__top {
+    padding: 16px;
+  }
+
+  .record-card__body {
+    padding: 18px;
+  }
+
+  .record-card__actions {
+    padding: 16px 10px;
+  }
+
+  .record-card__dates {
+    gap: 14px;
+  }
+
+  .record-card__dates > div {
+    min-width: 90px;
   }
 }
 
-@media (max-width: 620px) {
-  .record-card-grid {
+/* Mobile: stack sections when horizontal space is limited */
+@media (max-width: 520px) {
+  .record-card {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .record-card__top {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px 0;
+    border-right: 0;
+  }
+
+  .record-card__body {
+    padding: 16px 18px 20px;
+  }
+
+  .record-card__actions {
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 13px 18px;
+    border-top: 1px solid var(--color-border);
+    border-left: 0;
+  }
+
+  .record-card__read-more,
+  .record-card__update {
+    min-width: 100px;
   }
 }

@@ -233,3 +233,72 @@
     min-height: 72px;
   }
 }
+
+
+
+
+
+
+/* related to description editor */
+
+.record-detail__description > * {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.record-detail__description h1,
+.record-detail__description h2,
+.record-detail__description h3 {
+  color: var(--color-text);
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.record-detail__description h1 {
+  font-size: 28px;
+}
+
+.record-detail__description h2 {
+  font-size: 23px;
+}
+
+.record-detail__description h3 {
+  font-size: 18px;
+}
+
+.record-detail__description p {
+  line-height: 1.9;
+}
+
+.record-detail__description ul,
+.record-detail__description ol {
+  padding-left: 26px;
+  line-height: 1.9;
+}
+
+.record-detail__description blockquote {
+  margin-left: 0;
+  padding: 10px 16px;
+  border-left: 3px solid var(--color-focus);
+  background: var(--color-surface);
+}
+
+.record-detail__description a {
+  color: var(--color-focus);
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
+
+.record-detail__description img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 18px 0;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.record-detail__description hr {
+  border: 0;
+  border-top: 1px solid var(--color-border);
+}
