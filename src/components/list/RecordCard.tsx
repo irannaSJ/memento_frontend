@@ -6,11 +6,11 @@ import './RecordCard.css'
 interface RecordCardProps {
   feature: FeatureDefinition
   record: MementoRecord
-  canDelete: boolean
-  deleting: boolean
-  isDeleting: boolean
+  canUpdate: boolean
+  updating: boolean
+  isUpdating: boolean
   onReadMore: () => void
-  onDelete: () => void
+  onUpdate: () => void
 }
 
 function displayText(value: unknown): string {
@@ -71,11 +71,11 @@ function formatShortDate(value: unknown): string {
 export function RecordCard({
   feature,
   record,
-  canDelete,
-  deleting,
-  isDeleting,
+  canUpdate,
+  updating,
+  isUpdating,
   onReadMore,
-  onDelete,
+  onUpdate,
 }: RecordCardProps) {
   const isProject = feature.id === 'projects'
 
@@ -184,23 +184,23 @@ export function RecordCard({
           <i className="ri-arrow-right-line" aria-hidden="true" />
         </button>
 
-        {canDelete && (
+        {canUpdate && (
           <button
             type="button"
-            className="record-card__delete"
-            onClick={onDelete}
-            disabled={deleting}
+            className="record-card__update"
+            onClick={onUpdate}
+            disabled={updating}
           >
             <i
               className={
-                isDeleting
+                isUpdating
                   ? 'ri-loader-4-line'
-                  : 'ri-delete-bin-line'
+                  : 'ri-edit-line'
               }
               aria-hidden="true"
             />
 
-            {isDeleting ? 'Deleting…' : 'Delete'}
+            {isUpdating ? 'Opening…' : 'Update'}
           </button>
         )}
       </div>

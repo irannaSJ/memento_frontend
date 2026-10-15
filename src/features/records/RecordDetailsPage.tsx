@@ -8,6 +8,8 @@ import {
 
 import type { FeatureDefinition } from '../home/featureData'
 
+import { RecordUpdateDialog } from '../../components/form/RecordUpdateDialog'
+
 import './RecordDetailsPage.css'
 
 interface RecordDetailPageProps {
@@ -106,9 +108,8 @@ export function RecordDetailPage({
 
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
-
-  const [deleting, setDeleting] = useState(false)
+  const [isUpdateOpen, setIsUpdateOpen] = useState(false)
+  const [updateMessage, setUpdateMessage] = useState<string | null>(null)
   const [retryKey, setRetryKey] = useState(0)
 
   const isProject = feature.id === 'projects'
@@ -142,37 +143,37 @@ export function RecordDetailPage({
     }
   }, [feature.doctype, recordName, retryKey])
 
-  async function handleDelete() {
-    if (!record || !metadata?.capabilities.can_delete || deleting) {
-      return
-    }
+  // async function handleDelete() {
+  //   if (!record || !metadata?.capabilities.can_delete || deleting) {
+  //     return
+  //   }
 
-    const recordTitle = plainText(
-      isProject ? record.project_name : record.task_name,
-    )
+  //   const recordTitle = plainText(
+  //     isProject ? record.project_name : record.task_name,
+  //   )
 
-    const confirmed = window.confirm(
-      `Delete "${recordTitle === 'Not set' ? record.name : recordTitle}"? This action cannot be undone.`,
-    )
+  //   const confirmed = window.confirm(
+  //     `Delete "${recordTitle === 'Not set' ? record.name : recordTitle}"? This action cannot be undone.`,
+  //   )
 
-    if (!confirmed) return
+  //   if (!confirmed) return
 
-    setDeleting(true)
-    setDeleteError(null)
+  //   setDeleting(true)
+  //   setDeleteError(null)
 
-    try {
-      await mementoApi.deleteDocTypeRecord(
-        feature.doctype,
-        record.name,
-      )
+  //   try {
+  //     await mementoApi.deleteDocTypeRecord(
+  //       feature.doctype,
+  //       record.name,
+  //     )
 
-      onClose()
-    } catch (error: unknown) {
-      setDeleteError(getErrorMessage(error))
-    } finally {
-      setDeleting(false)
-    }
-  }
+  //     onClose()
+  //   } catch (error: unknown) {
+  //     setDeleteError(getErrorMessage(error))
+  //   } finally {
+  //     setDeleting(false)
+  //   }
+  // }
 
   if (loading) {
     return (
@@ -289,25 +290,33 @@ export function RecordDetailPage({
           Close
         </button>
 
-        {metadata?.capabilities.can_delete && (
+        {metadata?.capabilities.can_update && (
           <button
             type="button"
-            className="record-detail__delete"
-            onClick={() => void handleDelete()}
-            disabled={deleting}
+            className="record-detail__update"
+            onClick={() => setIsUpdateOpen(true)}
           >
-            <i className="ri-delete-bin-line" aria-hidden="true" />
-            {deleting ? 'Deleting…' : 'Delete'}
+            <i className="ri-edit-line" aria-hidden="true" />
+            Update
           </button>
         )}
       </div>
 
-      {deleteError && (
+      {/* {deleteError && (
         <div className="record-detail__error" role="alert">
           <strong>Unable to delete this record</strong>
           <p>{deleteError}</p>
         </div>
-      )}
+      )} */}
+
+      {
+        updateMessage && (
+          <div className='record-detail__notice' role='status'>
+            <i className="ri-checkbox-circle-line" aria-hidden="true"/>
+            {updateMessage}
+          </div>
+        )
+      }
 
       <header className="record-detail__header">
         <span className="record-detail__eyebrow">
@@ -380,6 +389,25 @@ export function RecordDetailPage({
           {description}
         </p>
       </section>
+
+
+      {isUpdateOpen && (
+        <RecordUpdateDialog
+          key={`${feature.id}:${recordName}`}
+          feature={feature}
+          recordName={recordName}
+          onClose={() => setIsUpdateOpen(false)}
+          onUpdated={(result) => {
+            setIsUpdateOpen(false)
+            setLoading(true)
+            setLoadError(null)
+            setUpdateMessage(
+              `Record ${result.name} updated successfully.`,
+            )
+            setRetryKey((value) => value + 1)
+          }}
+        />
+      )}
     </article>
   )
 }

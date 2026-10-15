@@ -1,0 +1,93 @@
+.record-update-dialog__overlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  overflow-y: auto;
+  background: rgb(15 18 28 / 48%);
+  backdrop-filter: blur(6px);
+}
+
+.record-update-dialog {
+  width: min(660px, 100%);
+  max-height: min(850px, calc(100vh - 48px));
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 28px 100px rgb(0 0 0 / 18%);
+}
+
+.record-update-dialog__header {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px 27px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.record-update-dialog__eyebrow {
+  color: var(--color-muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  overflow-wrap: anywhere;
+}
+
+.record-update-dialog__header h2 {
+  margin: 9px 0 0;
+  font-size: 25px;
+  font-weight: 650;
+  letter-spacing: -0.045em;
+}
+
+.record-update-dialog__header p {
+  margin: 7px 0 0;
+  color: var(--color-muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.record-update-dialog__close {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.record-update-dialog__close:hover {
+  background: var(--color-hover);
+}
+
+@media (max-width: 520px) {
+  .record-update-dialog__overlay {
+    padding: 12px;
+  }
+
+  .record-update-dialog {
+    max-height: calc(100vh - 24px);
+    border-radius: 16px;
+  }
+
+  .record-update-dialog__header {
+    padding: 19px;
+  }
+
+  .record-update-dialog__header h2 {
+    font-size: 22px;
+  }
+}

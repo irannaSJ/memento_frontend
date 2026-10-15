@@ -17,6 +17,7 @@ import { RecordTable } from '../../components/list/RecordTable'
 
 import { useNavigate } from 'react-router-dom'
 import { RecordCard } from '../../components/list/RecordCard'
+import { RecordUpdateDialog } from '../../components/form/RecordUpdateDialog'
 
 import './RecordPage.css'
 
@@ -40,24 +41,24 @@ interface RecordPageProps {
 }
 
 
-function plainTextForDelete(value: unknown): string {
-  if (typeof value !== 'string') {
-    return value == null ? '' : String(value)
-  }
+// function plainTextForDelete(value: unknown): string {
+//   if (typeof value !== 'string') {
+//     return value == null ? '' : String(value)
+//   }
 
-  if (typeof document === 'undefined') {
-    return value
-  }
+//   if (typeof document === 'undefined') {
+//     return value
+//   }
 
-  const parsed = new DOMParser().parseFromString(
-    value,
-    'text/html',
-  )
+//   const parsed = new DOMParser().parseFromString(
+//     value,
+//     'text/html',
+//   )
 
-  return (parsed.body.textContent ?? value)
-    .replace(/\s+/g, ' ')
-    .trim()
-}
+//   return (parsed.body.textContent ?? value)
+//     .replace(/\s+/g, ' ')
+//     .trim()
+// }
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
@@ -88,11 +89,11 @@ export function RecordPage({
     useState<PaginationInfo | null>(null)
 
 
-  const [deletingRecordName, setDeletingRecordName] =
+  const [editingRecordName, setEditingRecordName] =
     useState<string | null>(null)
 
-  const [deleteError, setDeleteError] =
-    useState<string | null>(null)
+  // const [deleteError, setDeleteError] =
+  //   useState<string | null>(null)
 
   const [actionMessage, setActionMessage] =
     useState<string | null>(null)
@@ -217,56 +218,56 @@ export function RecordPage({
 
 
 
-  async function handleDeleteRecord(record: MementoRecord) {
-    if (
-      !isCardFeature ||
-      !metadata?.capabilities.can_delete ||
-      deletingRecordName !== null
-    ) {
-      return
-    }
+  // async function handleDeleteRecord(record: MementoRecord) {
+  //   if (
+  //     !isCardFeature ||
+  //     !metadata?.capabilities.can_delete ||
+  //     deletingRecordName !== null
+  //   ) {
+  //     return
+  //   }
 
-    const recordTitle = plainTextForDelete(
-      feature.id === 'projects'
-        ? record.project_name
-        : record.task_name,
-    ) || record.name
+  //   const recordTitle = plainTextForDelete(
+  //     feature.id === 'projects'
+  //       ? record.project_name
+  //       : record.task_name,
+  //   ) || record.name
 
-    const confirmed = window.confirm(
-      `Delete "${recordTitle}"? This action cannot be undone.`,
-    )
+  //   const confirmed = window.confirm(
+  //     `Delete "${recordTitle}"? This action cannot be undone.`,
+  //   )
 
-    if (!confirmed) return
+  //   if (!confirmed) return
 
-    setDeletingRecordName(record.name)
-    setDeleteError(null)
-    setActionMessage(null)
+  //   setDeletingRecordName(record.name)
+  //   setDeleteError(null)
+  //   setActionMessage(null)
 
-    try {
-      const response = await mementoApi.deleteDocTypeRecord(
-        doctype,
-        record.name,
-      )
+  //   try {
+  //     const response = await mementoApi.deleteDocTypeRecord(
+  //       doctype,
+  //       record.name,
+  //     )
 
-      setRecords((current) =>
-        current.filter((item) => item.name !== record.name),
-      )
+  //     setRecords((current) =>
+  //       current.filter((item) => item.name !== record.name),
+  //     )
 
-      setActionMessage(
-        response.message ?? `"${recordTitle}" was deleted.`,
-      )
+  //     setActionMessage(
+  //       response.message ?? `"${recordTitle}" was deleted.`,
+  //     )
 
-      if (records.length === 1 && start > 0) {
-        setStart((current) => Math.max(0, current - PAGE_LENGTH))
-      } else {
-        setRecordsRefreshKey((current) => current + 1)
-      }
-    } catch (error: unknown) {
-      setDeleteError(getErrorMessage(error))
-    } finally {
-      setDeletingRecordName(null)
-    }
-  }
+  //     if (records.length === 1 && start > 0) {
+  //       setStart((current) => Math.max(0, current - PAGE_LENGTH))
+  //     } else {
+  //       setRecordsRefreshKey((current) => current + 1)
+  //     }
+  //   } catch (error: unknown) {
+  //     setDeleteError(getErrorMessage(error))
+  //   } finally {
+  //     setDeletingRecordName(null)
+  //   }
+  // }
 
   const pageNumber = Math.floor(start / PAGE_LENGTH) + 1
 
@@ -347,7 +348,7 @@ export function RecordPage({
         </div>
       )}
 
-      {deleteError && (
+      {/* {deleteError && (
         <div className="record-page__error" role="alert">
           <div>
             <strong>Unable to delete record</strong>
@@ -361,7 +362,7 @@ export function RecordPage({
             Dismiss
           </button>
         </div>
-      )}
+      )} */}
 
       {metadataError && (
         <div className="record-page__error" role="alert">
@@ -430,17 +431,15 @@ export function RecordPage({
               key={record.name}
               feature={feature}
               record={record}
-              canDelete={metadata.capabilities.can_delete}
-              deleting={deletingRecordName !== null}
-              isDeleting={deletingRecordName === record.name}
+              canUpdate={metadata.capabilities.can_update}
+              updating={editingRecordName !== null}
+              isUpdating={editingRecordName === record.name}
               onReadMore={() => {
                 navigate(
                   `/${feature.id}/${encodeURIComponent(record.name)}`,
                 )
               }}
-              onDelete={() => {
-                void handleDeleteRecord(record)
-              }}
+              onUpdate={() => setEditingRecordName(record.name)}
             />
           ))}
 
@@ -509,6 +508,25 @@ export function RecordPage({
           </button>
         </div>
       </div>
+
+
+      {editingRecordName && (
+        <RecordUpdateDialog
+          key={`${feature.id}:${editingRecordName}`}
+          feature={feature}
+          recordName={editingRecordName}
+          onClose={() => setEditingRecordName(null)}
+          onUpdated={(result) => {
+            setEditingRecordName(null)
+            setRecordsLoading(true)
+            setRecordsError(null)
+            setActionMessage(
+              `Record ${result.name} updated successfully.`,
+            )
+            setRecordsRefreshKey((value) => value + 1)
+          }}
+        />
+      )}
     </section>
   )
 }

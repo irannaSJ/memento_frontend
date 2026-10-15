@@ -159,7 +159,7 @@
 }
 
 .record-card__read-more,
-.record-card__delete {
+.record-card__update {
   display: inline-flex;
   min-height: 36px;
   align-items: center;
@@ -183,24 +183,24 @@
   opacity: 0.84;
 }
 
-.record-card__delete {
+.record-card__update {
   padding: 8px 9px;
   background: transparent;
   color: var(--color-muted);
 }
 
-.record-card__delete:hover:not(:disabled) {
+.record-card__update:hover:not(:disabled) {
   background: var(--color-hover);
   color: var(--color-text);
 }
 
-.record-card__delete:disabled {
+.record-card__update:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
 .record-card__read-more:focus-visible,
-.record-card__delete:focus-visible {
+.record-card__update:focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 3px;
 }
