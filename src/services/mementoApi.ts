@@ -106,6 +106,27 @@ export interface FileUploadContext {
 }
 
 
+
+
+//related to Link fields:
+export interface LinkOption {
+  value: string
+  label: string
+  name: string
+}
+
+export interface SearchLinkOptionsParams {
+  source_doctype: string
+  fieldname: string
+  search?: string
+  operation?: 'create' | 'update'
+  reference_doctype?: string
+  page_length?: number
+}
+
+
+
+
 export class MementoApiError extends Error{
     readonly statusCode : number;
     readonly details : unknown;
@@ -536,6 +557,17 @@ export const mementoApi = {
         context : FileUploadContext,
     ): Promise<UploadedFile>{
         return uploadFileToFrappe(file,context)
-    }
+    },
+
+
+    searchLinkOptions(
+        params: SearchLinkOptionsParams,
+        ): Promise<ApiResponse<LinkOption[]>> {
+        return request<LinkOption[]>(
+            'memento.api_endpoints.link_options.search_link_options',
+            'GET',
+            params,
+        )
+        },
 
 }

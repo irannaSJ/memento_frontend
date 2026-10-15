@@ -394,13 +394,6 @@ export function MetadataDrivenForm({
     }
   }, [doctype, mode, purpose, recordName, retryKey])
 
-  function updateField(fieldname: string, value: unknown) {
-    setValues((current) => ({
-      ...current,
-      [fieldname]: value,
-    }))
-  }
-
   function handlePendingImagesChange(
     fieldname: string,
     fieldImages: PendingEditorImage[],
@@ -705,24 +698,47 @@ export function MetadataDrivenForm({
         </p>
       ) : (
         visibleFields.map((field) => (
-          <FieldRenderer
-            key={field.fieldname}
-            field={field}
-            value={values[field.fieldname]}
-            doctype={doctype}
-            docname={mode === 'update' ? recordName : undefined}
-            editable={canSubmit}
-            allowPendingImages={mode === 'create'}
-            onPendingImagesChange={(fieldImages) =>
-              handlePendingImagesChange(
-                field.fieldname,
-                fieldImages,
-              )
-            }
-            onChange={(value) =>
-              updateField(field.fieldname, value)
-            }
-          />
+          
+        <FieldRenderer
+          key={field.fieldname}
+          field={field}
+          value={values[field.fieldname]}
+          doctype={doctype}
+          docname={mode === 'update' ? recordName : undefined}
+          editable={canSubmit}
+          operation={mode}
+          referenceDoctype={
+            field.fieldtype === 'Dynamic Link' && field.options_field
+              ? String(values[field.options_field] ?? '')
+              : undefined
+          }
+          allowPendingImages={mode === 'create'}
+          onPendingImagesChange={(fieldImages) =>
+            handlePendingImagesChange(field.fieldname, fieldImages)
+          }
+          onChange={(nextValue) => {
+            setValues((current) => {
+              const nextValues = {
+                ...current,
+                [field.fieldname]: nextValue,
+              }
+
+              // Changing a Dynamic Link's target type invalidates its
+              // previously selected record.
+              for (const candidate of metadata?.fields ?? []) {
+                if (
+                  candidate.fieldtype === 'Dynamic Link' &&
+                  candidate.options_field === field.fieldname
+                ) {
+                  nextValues[candidate.fieldname] = ''
+                }
+              }
+
+              return nextValues
+            })
+          }}
+        />
+
         ))
       )}
 

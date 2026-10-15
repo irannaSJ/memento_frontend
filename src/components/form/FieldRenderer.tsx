@@ -5,6 +5,8 @@ import {
   type PendingEditorImage,
 } from './RichTextEditor'
 
+import { LinkField } from './LinkField'
+
 interface FieldRendererProps {
   field: FieldMetadata
   value: unknown
@@ -14,6 +16,8 @@ interface FieldRendererProps {
   editable?: boolean
   allowPendingImages?: boolean
   onPendingImagesChange?: (images: PendingEditorImage[]) => void
+  operation?: 'create' | 'update'
+  referenceDoctype?: string
 }
 
 const TABLE_FIELD_TYPES = new Set([
@@ -46,6 +50,8 @@ export function FieldRenderer({
   editable = true,
   allowPendingImages = false,
   onPendingImagesChange,
+  operation = 'create',
+  referenceDoctype,
 }: FieldRendererProps) {
   if (field.hidden) {
     return null
@@ -55,6 +61,54 @@ export function FieldRenderer({
   const valueText = displayValue(value)
   const disabled = !editable || field.read_only
   const required = field.required && !disabled
+
+
+
+  if (
+    field.fieldtype === 'Link' ||
+    field.fieldtype === 'Dynamic Link'
+  ) {
+    return (
+      <div className="metadata-form__field">
+        <label
+          className="metadata-form__label"
+          htmlFor={id}
+        >
+          {field.label}
+
+          {required && (
+            <span
+              className="metadata-form__required"
+              aria-hidden="true"
+            >
+              {' '}*
+            </span>
+          )}
+        </label>
+
+        <LinkField
+          id={id}
+          sourceDoctype={doctype ?? ''}
+          fieldname={field.fieldname}
+          value={valueText}
+          onChange={onChange}
+          operation={operation}
+          referenceDoctype={referenceDoctype}
+          isDynamicLink={field.fieldtype === 'Dynamic Link'}
+          disabled={disabled}
+          required={required}
+          placeholder={`Search ${field.label.toLowerCase()}…`}
+        />
+
+        {field.description && (
+          <p className="metadata-form__description">
+            {field.description}
+          </p>
+        )}
+      </div>
+    )
+  }
+
 
   // Rich-text field: formatting, links, and image handling.
   if (field.fieldtype === 'Text Editor') {
@@ -277,8 +331,8 @@ export function FieldRenderer({
 
       {TABLE_FIELD_TYPES.has(field.fieldtype) && (
         <small className="metadata-form__help">
-          Enter a JSON array of child-row objects. The required row
-          structure depends on the linked Frappe child DocType.
+          {/* Enter a JSON array of child-row objects. The required row
+          structure depends on the linked Frappe child DocType. */}
         </small>
       )}
 
