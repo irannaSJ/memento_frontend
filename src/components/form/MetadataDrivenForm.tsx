@@ -49,9 +49,39 @@ function localDateTime(): string {
   ).padStart(2, '0')}`
 }
 
+
+function isDailyTodoDescription(
+  doctype: string,
+  fieldname: string,
+): boolean {
+  return doctype === 'Daily ToDo' && fieldname === 'description'
+}
+
+function htmlToPlainText(value: string): string {
+  const parsed = new DOMParser().parseFromString(
+    value,
+    'text/html',
+  )
+
+  return (parsed.body.textContent ?? value)
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function escapeHtmlText(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+
 function getInitialValue(
   field: FieldMetadata,
   record?: MementoRecord,
+  doctype = ''
 ): unknown {
   const hasRecordValue =
     record &&
@@ -59,6 +89,14 @@ function getInitialValue(
 
   if (hasRecordValue) {
     const value = record[field.fieldname]
+
+    if (
+        doctype === 'Daily ToDo' &&
+        field.fieldname === 'description' &&
+        typeof value === 'string'
+      ) {
+        return htmlToPlainText(value)
+      }
 
     if (JSON_FIELD_TYPES.has(field.fieldtype)) {
       return JSON.stringify(value ?? [], null, 2)
@@ -204,6 +242,7 @@ function buildPayload(
   fields: FieldMetadata[],
   values: FormValues,
   mode: FormMode,
+  doctype : string
 ): FormValues {
   const payload: FormValues = {}
 
@@ -215,9 +254,15 @@ function buildPayload(
     const value = values[field.fieldname]
 
     if (field.required && isEmptyFieldValue(field, value)) {
-      throw new Error(`${field.label} is required.`)
-    }
+      const label = isDailyTodoDescription(
+        doctype,
+        field.fieldname,
+      )
+        ? 'To-do item'
+        : field.label
 
+      throw new Error(`${label} is required.`)
+    }
     if (value === undefined || value === null) {
       if (mode === 'update') {
         payload[field.fieldname] = ''
@@ -281,6 +326,22 @@ function buildPayload(
       typeof value === 'string'
     ) {
       payload[field.fieldname] = value.replace('T', ' ')
+      continue
+    }
+
+
+    if (
+      isDailyTodoDescription(doctype, field.fieldname)
+    ) {
+      const text =
+        typeof value === 'string'
+          ? value.trim()
+          : String(value ?? '')
+
+      payload[field.fieldname] = text
+        ? `<p>${escapeHtmlText(text)}</p>`
+        : ''
+
       continue
     }
 
@@ -372,6 +433,7 @@ export function MetadataDrivenForm({
           initialValues[field.fieldname] = getInitialValue(
             field,
             currentRecord,
+            doctype
           )
         }
 
@@ -465,6 +527,7 @@ export function MetadataDrivenForm({
         metadata.fields,
         values,
         mode,
+        doctype
       )
 
       if (mode === 'create') {
@@ -692,55 +755,67 @@ export function MetadataDrivenForm({
         </div>
       )}
 
+      
       {visibleFields.length === 0 ? (
         <p className="metadata-form__empty">
           No permitted fields are available for this form.
         </p>
       ) : (
-        visibleFields.map((field) => (
-          
-        <FieldRenderer
-          key={field.fieldname}
-          field={field}
-          value={values[field.fieldname]}
-          doctype={doctype}
-          docname={mode === 'update' ? recordName : undefined}
-          editable={canSubmit}
-          operation={mode}
-          referenceDoctype={
-            field.fieldtype === 'Dynamic Link' && field.options_field
-              ? String(values[field.options_field] ?? '')
-              : undefined
-          }
-          allowPendingImages={mode === 'create'}
-          onPendingImagesChange={(fieldImages) =>
-            handlePendingImagesChange(field.fieldname, fieldImages)
-          }
-          onChange={(nextValue) => {
-            setValues((current) => {
-              const nextValues = {
-                ...current,
-                [field.fieldname]: nextValue,
+        visibleFields.map((field) => {
+          const renderedField = isDailyTodoDescription(
+            doctype,
+            field.fieldname,
+          )
+            ? {
+                ...field,
+                fieldtype: 'Data',
+                label: 'To-do item',
               }
+            : field
 
-              // Changing a Dynamic Link's target type invalidates its
-              // previously selected record.
-              for (const candidate of metadata?.fields ?? []) {
-                if (
-                  candidate.fieldtype === 'Dynamic Link' &&
-                  candidate.options_field === field.fieldname
-                ) {
-                  nextValues[candidate.fieldname] = ''
-                }
+          return (
+            <FieldRenderer
+              key={field.fieldname}
+              field={renderedField}
+              value={values[field.fieldname]}
+              doctype={doctype}
+              docname={mode === 'update' ? recordName : undefined}
+              editable={canSubmit}
+              operation={mode}
+              referenceDoctype={
+                field.fieldtype === 'Dynamic Link' && field.options_field
+                  ? String(values[field.options_field] ?? '')
+                  : undefined
               }
+              allowPendingImages={mode === 'create'}
+              onPendingImagesChange={(fieldImages) =>
+                handlePendingImagesChange(field.fieldname, fieldImages)
+              }
+              onChange={(nextValue) => {
+                setValues((current) => {
+                  const nextValues = {
+                    ...current,
+                    [field.fieldname]: nextValue,
+                  }
 
-              return nextValues
-            })
-          }}
-        />
+                  // Clear dependent Dynamic Link values when the target type changes.
+                  for (const candidate of metadata?.fields ?? []) {
+                    if (
+                      candidate.fieldtype === 'Dynamic Link' &&
+                      candidate.options_field === field.fieldname
+                    ) {
+                      nextValues[candidate.fieldname] = ''
+                    }
+                  }
 
-        ))
+                  return nextValues
+                })
+              }}
+            />
+          )
+        })
       )}
+
 
       <div className="metadata-form__actions">
         <button
