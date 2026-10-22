@@ -222,18 +222,83 @@
 }
 
 .feature-card__mockup-list {
+  position: relative;
+  height: 150px;
+  min-height: 150px;
+  padding-top: 5px;
+  overflow: hidden;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 8%,
+    #000 92%,
+    transparent 100%
+  );
+}
+
+.feature-card__mockup-track {
   display: flex;
   flex-direction: column;
-  gap: 0;
-  padding-top: 5px;
+  width: 100%;
+  will-change: transform;
 }
 
 .feature-card__mockup-row {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   gap: 9px;
+  width: 100%;
   min-width: 0;
-  padding: 10px 0;
+  padding: 10px 7px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 160ms ease;
+}
+
+.feature-card__mockup-row:hover {
+  background: rgb(114 83 204 / 8%);
+}
+
+.feature-card__mockup-row:focus-visible {
+  outline: 2px solid #7253cc;
+  outline-offset: -2px;
+  background: rgb(114 83 204 / 8%);
+}
+
+.feature-card__mockup-row:active {
+  background: rgb(114 83 204 / 13%);
+}
+
+.feature-card__mockup-state {
+  display: grid;
+  min-height: 125px;
+  padding: 12px;
+  place-items: center;
+  color: #888397;
+  font-size: 10px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.feature-card__mockup-row .feature-card__row-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feature-card__mockup-track {
+    will-change: auto;
+  }
+
+  .feature-card__mockup-row {
+    transition: none;
+  }
 }
 
 .feature-card__row-dot {
@@ -540,5 +605,498 @@
 
   .feature-card__button {
     transition: none;
+  }
+}
+
+
+/* =========================================
+   Live record card stack
+   ========================================= */
+
+.feature-card__visual-main {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+}
+
+.feature-card__mockup {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+  visibility: visible;
+  opacity: 1;
+}
+
+.feature-card__mockup-list {
+  position: relative;
+  height: 178px;
+  min-height: 178px;
+  padding: 9px 4px 4px;
+  overflow: hidden;
+  isolation: isolate;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 7%,
+    #000 94%,
+    transparent 100%
+  );
+}
+
+.feature-card__preview-stack {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.feature-card__record-preview {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-width: 0;
+  min-height: 61px;
+  padding: 9px 10px;
+  border: 1px solid rgb(226 222 239 / 92%);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 97%);
+  box-shadow: 0 7px 18px rgb(49 39 77 / 9%);
+  color: #252333;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transform-origin: center top;
+  will-change: transform, opacity;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+.feature-card__record-preview:nth-child(1) {
+  z-index: 5;
+  transform: translate(0, 0) scale(1);
+  opacity: 1;
+}
+
+.feature-card__record-preview:nth-child(2) {
+  z-index: 4;
+  transform: translate(8px, 37px) scale(0.96);
+  opacity: 0.78;
+}
+
+.feature-card__record-preview:nth-child(3) {
+  z-index: 3;
+  transform: translate(14px, 70px) scale(0.92);
+  opacity: 0.52;
+}
+
+.feature-card__record-preview:nth-child(n + 4) {
+  z-index: 1;
+  transform: translate(14px, 86px) scale(0.88);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.feature-card__record-preview:hover,
+.feature-card__record-preview:focus-visible {
+  border-color: #9d8be2;
+  background: #fff;
+  box-shadow: 0 10px 24px rgb(49 39 77 / 15%);
+}
+
+.feature-card__record-preview:focus-visible {
+  outline: 2px solid #7253cc;
+  outline-offset: 2px;
+}
+
+.feature-card__record-preview .feature-card__row-dot {
+  flex: 0 0 6px;
+}
+
+.feature-card__record-preview .feature-card__row-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.feature-card__record-preview .feature-card__row-copy > strong,
+.feature-card__record-preview .feature-card__row-copy > span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feature-card__record-preview .feature-card__row-status {
+  max-width: 88px;
+  flex: 0 0 auto;
+}
+
+.feature-card__mockup-state {
+  display: grid;
+  min-height: 150px;
+  padding: 12px;
+  place-items: center;
+  color: #888397;
+  font-size: 10px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* A single record stays still and fully visible. */
+
+.feature-card__mockup-list[data-single-record='true'] {
+  display: flex;
+  align-items: center;
+  mask-image: none;
+}
+
+.feature-card__mockup-list[data-single-record='true']
+  .feature-card__preview-stack {
+  height: auto;
+  min-height: 61px;
+}
+
+.feature-card__mockup-list[data-single-record='true']
+  .feature-card__record-preview {
+  position: relative;
+  inset: auto;
+  z-index: 1;
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+  will-change: auto;
+}
+
+/* Respect the user's reduced-motion preference. */
+
+@media (prefers-reduced-motion: reduce) {
+  .feature-card__record-preview {
+    will-change: auto;
+    transition: none;
+  }
+}
+
+
+/* One complete rounded record card inside the feature preview. */
+
+.feature-card__record-mockup {
+  width: min(100%, 390px);
+  min-height: 300px;
+  box-sizing: border-box;
+  border-radius: 22px;
+  overflow: hidden;
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
+
+.feature-card__record-number {
+  color: #858195;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.feature-card__record-content {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+  width: 100%;
+  min-height: 245px;
+  padding: 19px 0 4px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #252333;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.feature-card__record-content:focus-visible {
+  outline: 2px solid #7253cc;
+  outline-offset: 3px;
+}
+
+.feature-card__record-heading {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.feature-card__record-title-wrap {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.feature-card__record-kicker {
+  color: #858195;
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+}
+
+.feature-card__record-title {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #252333;
+  font-size: 17px;
+  font-weight: 750;
+  letter-spacing: -0.035em;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.feature-card__record-description {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  color: #777286;
+  font-size: 10px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.feature-card__record-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.feature-card__record-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #eeedf2;
+  border-radius: 12px;
+  background: #faf9fd;
+}
+
+.feature-card__record-detail-item > span {
+  color: #858195;
+  font-size: 7px;
+  font-weight: 750;
+  letter-spacing: 0.07em;
+}
+
+.feature-card__record-detail-item > strong {
+  overflow: hidden;
+  color: #363344;
+  font-size: 9px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feature-card__record-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid #eeedf2;
+}
+
+.feature-card__record-footer > span:first-child {
+  color: #858195;
+  font-size: 7px;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+}
+
+.feature-card__record-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #7253cc;
+  font-size: 9px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.feature-card__record-open > i {
+  font-size: 13px;
+}
+
+.feature-card__record-content:hover .feature-card__record-open {
+  color: #4c329e;
+}
+
+.feature-card__record-state {
+  display: grid;
+  flex: 1;
+  min-height: 220px;
+  place-items: center;
+  color: #858195;
+  font-size: 11px;
+  line-height: 1.7;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 420px) {
+  .feature-card__record-mockup {
+    min-height: 300px;
+    padding: 13px;
+    border-radius: 19px;
+  }
+
+  .feature-card__record-title {
+    font-size: 15px;
+  }
+
+  .feature-card__record-details {
+    gap: 7px;
+  }
+
+  .feature-card__record-detail-item {
+    padding: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feature-card__record-mockup {
+    will-change: auto;
+  }
+}
+
+
+/* =========================================
+   Larger, clearer animated record preview
+   ========================================= */
+
+.feature-card__record-mockup {
+  width: min(100%, 490px);
+  min-height: 370px;
+  padding: 22px;
+  box-sizing: border-box;
+  border-radius: 24px;
+}
+
+/* Record heading */
+
+.feature-card__record-heading {
+  gap: 13px;
+}
+
+.feature-card__record-title-wrap {
+  gap: 7px;
+}
+
+.feature-card__record-kicker {
+  font-size: 9px;
+  letter-spacing: 0.11em;
+}
+
+.feature-card__record-title {
+  font-size: 20px;
+  line-height: 1.4;
+}
+
+/* Record description */
+
+.feature-card__record-content {
+  min-height: 295px;
+  gap: 19px;
+  padding-top: 24px;
+}
+
+.feature-card__record-description {
+  font-size: 12px;
+  line-height: 1.85;
+  -webkit-line-clamp: 4;
+}
+
+/* Details become easier to read */
+
+.feature-card__record-details {
+  gap: 10px;
+}
+
+.feature-card__record-detail-item {
+  gap: 7px;
+  padding: 12px;
+  border-radius: 13px;
+}
+
+.feature-card__record-detail-item > span {
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
+.feature-card__record-detail-item > strong {
+  font-size: 10px;
+}
+
+/* Clearer footer */
+
+.feature-card__record-footer {
+  gap: 12px;
+  padding-top: 15px;
+}
+
+.feature-card__record-footer > span:first-child {
+  font-size: 8px;
+}
+
+.feature-card__record-open {
+  gap: 7px;
+  font-size: 10px;
+}
+
+/* Keep the larger card comfortable on smaller screens */
+
+@media (max-width: 899px) {
+  .feature-card__record-mockup {
+    width: min(100%, 490px);
+    min-height: 350px;
+    padding: 19px;
+  }
+
+  .feature-card__record-content {
+    min-height: 275px;
+  }
+}
+
+@media (max-width: 480px) {
+  .feature-card__record-mockup {
+    min-height: 330px;
+    padding: 15px;
+    border-radius: 20px;
+  }
+
+  .feature-card__record-title {
+    font-size: 17px;
+  }
+
+  .feature-card__record-content {
+    min-height: 265px;
+    gap: 16px;
+  }
+
+  .feature-card__record-description {
+    font-size: 11px;
+  }
+
+  .feature-card__record-detail-item {
+    padding: 9px;
   }
 }

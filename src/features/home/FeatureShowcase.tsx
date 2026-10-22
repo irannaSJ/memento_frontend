@@ -16,12 +16,11 @@ import {
 
 import type { NavigationItemId } from '../../components/navigation/FloatingNavigation'
 
-import {
-  FeatureActionDialog,
-} from './FeatureActionDialog'
 
 import { FeatureCard } from './FeatureCard'
 import './FeatureShowcase.css'
+
+import {useNavigate} from 'react-router-dom'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -36,7 +35,6 @@ interface FeatureShowcaseProps {
   onOpenRecords : (feature : FeatureDefinition) => void
 }
 
-type ActiveDialog = FeatureDefinition| null
 
 // const emptyCreatedItems: Record<FeatureId, FeatureRecord[]> = {
 //   projects: [],
@@ -51,8 +49,8 @@ export function FeatureShowcase({
   onOpenRecords,
 }: FeatureShowcaseProps) {
   const [activeIndex, setActiveIndex] = useState(0)
-  const [activeDialog, setActiveDialog] =
-    useState<ActiveDialog>(null)
+
+  const navigate = useNavigate()
 
   // const [createdItems, setCreatedItems] =
   //   useState<Record<FeatureId, FeatureRecord[]>>(
@@ -356,20 +354,6 @@ export function FeatureShowcase({
       })
   }, [navigationRequest])
 
-  function openDialog(
-    feature: FeatureDefinition,
-  ) {
-    setActiveDialog(feature)
-  }
-
-  function handleCreate() {
-    if (!activeDialog) return
-    const feature = activeDialog
-
-    setActiveDialog(null)
-    onOpenRecords(feature)
-    
-  }
 
   return (
     <section
@@ -421,9 +405,10 @@ export function FeatureShowcase({
             <FeatureCard
               key={feature.id}
               feature={feature}
-              // onView={() => openDialog(feature, 'view')}
               onView={() => onOpenRecords(feature)}
-              onCreate={() => openDialog(feature)}
+              onCreate={() => {
+                navigate(`/${feature.id}/new`)
+              }}
             />
           ))}
         </div>
@@ -434,15 +419,7 @@ export function FeatureShowcase({
         </div>
       </div>
 
-      {activeDialog && (
-        <FeatureActionDialog
-          key={`${activeDialog.id}-create`}
-          feature={activeDialog}
-          onClose={() => setActiveDialog(null)}
-          onCreated={handleCreate}
-          
-        />
-      )}
+      
     </section>
   )
 }

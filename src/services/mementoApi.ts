@@ -50,6 +50,7 @@ export interface FieldMetadata {
     link_doctypes?:string;
     options_field?:string;
     child_doctype?:string;
+    options?: string | null;
 }
 
 export interface DocTypeMetadata {

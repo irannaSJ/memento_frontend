@@ -1,3 +1,5 @@
+import type { KeyboardEvent, MouseEvent } from 'react'
+
 import type { FeatureDefinition } from '../../features/home/featureData'
 import type { MementoRecord } from '../../services/mementoApi'
 
@@ -11,6 +13,8 @@ interface RecordCardProps {
   isUpdating: boolean
   onReadMore: () => void
   onUpdate: () => void
+  /** Opens the related records view when the card body is activated. */
+  onCardClick?: () => void
 }
 
 function displayText(value: unknown): string {
@@ -63,8 +67,12 @@ function formatShortDate(value: unknown): string {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
-  }).format(
-    new Date(Number(year), Number(month) - 1, Number(day)),
+  }).format(new Date(Number(year), Number(month) - 1, Number(day)))
+}
+
+function isInteractiveTarget(target: EventTarget | null): boolean {
+  return target instanceof Element && Boolean(
+    target.closest('button, a, input, select, textarea, [role="button"]'),
   )
 }
 
@@ -76,6 +84,7 @@ export function RecordCard({
   isUpdating,
   onReadMore,
   onUpdate,
+  onCardClick,
 }: RecordCardProps) {
   const isProject = feature.id === 'projects'
 
@@ -84,7 +93,6 @@ export function RecordCard({
   ) || record.name
 
   const description = plainText(record.description)
-
   const status = plainText(record.status)
   const priority = plainText(
     isProject ? record.priority_level : record.priority,
@@ -94,36 +102,43 @@ export function RecordCard({
     isProject ? record.category : record.project,
   )
 
-  const startDate = isProject
-    ? record.start_date
-    : record.from_date
+  const startDate = isProject ? record.start_date : record.from_date
+  const endDate = isProject ? record.end_date : record.to_date
 
-  const endDate = isProject
-    ? record.end_date
-    : record.to_date
+  const excerpt = description.length > 150
+    ? `${description.slice(0, 150).trimEnd()}…`
+    : description
 
-  const excerpt =
-    description.length > 150
-      ? `${description.slice(0, 150).trimEnd()}…`
-      : description
+  function handleCardClick(event: MouseEvent<HTMLElement>) {
+    if (!onCardClick || isInteractiveTarget(event.target)) return
+    onCardClick()
+  }
+
+  function handleCardKeyDown(event: KeyboardEvent<HTMLElement>) {
+    if (!onCardClick || isInteractiveTarget(event.target)) return
+
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      onCardClick()
+    }
+  }
 
   return (
-    <article className="record-card">
+    <article
+      className="record-card"
+      role={onCardClick ? 'link' : undefined}
+      tabIndex={onCardClick ? 0 : undefined}
+      aria-label={onCardClick ? `Open related records for ${title}` : undefined}
+      onClick={handleCardClick}
+      onKeyDown={handleCardKeyDown}
+    >
       <div className="record-card__top">
         <span className="record-card__icon" aria-hidden="true">
-          <i
-            className={
-              isProject
-                ? 'ri-folder-3-line'
-                : 'ri-task-line'
-            }
-          />
+          <i className={isProject ? 'ri-folder-3-line' : 'ri-task-line'} />
         </span>
 
         {status && (
-          <span className="record-card__status">
-            {status}
-          </span>
+          <span className="record-card__status">{status}</span>
         )}
       </div>
 
@@ -142,11 +157,7 @@ export function RecordCard({
           {categoryOrProject && (
             <span className="record-card__tag">
               <i
-                className={
-                  isProject
-                    ? 'ri-folder-line'
-                    : 'ri-links-line'
-                }
+                className={isProject ? 'ri-folder-line' : 'ri-links-line'}
                 aria-hidden="true"
               />
               {categoryOrProject}
@@ -192,14 +203,9 @@ export function RecordCard({
             disabled={updating}
           >
             <i
-              className={
-                isUpdating
-                  ? 'ri-loader-4-line'
-                  : 'ri-edit-line'
-              }
+              className={isUpdating ? 'ri-loader-4-line' : 'ri-edit-line'}
               aria-hidden="true"
             />
-
             {isUpdating ? 'Opening…' : 'Update'}
           </button>
         )}

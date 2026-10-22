@@ -16,6 +16,8 @@ import {
 
 import './App.css'
 
+import { RecordCreatePage } from './features/records/RecordCreatePage'
+
 import {
   FloatingNavigation,
   type NavigationItemId,
@@ -92,6 +94,33 @@ function RecordDetailRoute() {
   )
 }
 
+function RecordCreateRoute() {
+  const { featureId } = useParams<{ featureId: string }>()
+  const navigate = useNavigate()
+
+  const feature = featureCards.find(
+    (item) => item.id === featureId,
+  )
+
+  if (!feature) {
+    return <Navigate to="/" replace />
+  }
+
+  return (
+    <RecordCreatePage
+      key={`${feature.id}-create`}
+      feature={feature}
+      onCancel={() => {
+        navigate(`/${feature.id}`)
+      }}
+      onCreated={() => {
+        navigate(`/${feature.id}`, {
+          replace: true,
+        })
+      }}
+    />
+  )
+}
 
 
 
@@ -194,6 +223,12 @@ function MementoApp() {
 
 
           <Route
+            path="/:featureId/new"
+            element={<RecordCreateRoute />}
+          />
+
+
+          <Route
             path="/:featureId/:recordName"
             element={<RecordDetailRoute />}
           />
@@ -211,6 +246,8 @@ function MementoApp() {
             path="*"
             element={<Navigate to="/" replace />}
           />
+
+
         </Routes>
       </main>
     </div>

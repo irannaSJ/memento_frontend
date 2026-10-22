@@ -398,7 +398,7 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
+  gap: 10px;
   margin-top: 35px;
   padding-top: 23px;
   border-top: 1px solid
@@ -566,7 +566,7 @@
 
 .record-detail__section {
   min-width: 0;
-  margin-top: 58px;
+  margin-top: 30px;
   scroll-margin-top: 110px;
 }
 
@@ -728,7 +728,7 @@
    ========================================================= */
 
 .record-detail__description-section {
-  margin-top: 70px;
+  margin-top: 30px;
 }
 
 .record-detail__description-heading {

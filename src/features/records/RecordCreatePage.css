@@ -1,0 +1,242 @@
+.record-create-page {
+  width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+  /* padding: 140px 40px 72px; */
+  padding : 140px 0px;
+  color: var(--color-text);
+}
+
+.record-create-page__container {
+  width: min(960px, 100%);
+  max-width: none;
+  margin: 0 auto;
+}
+
+.record-create-page__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 40px;
+  padding: 9px 13px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    transform 160ms ease;
+}
+
+.record-create-page__back:hover {
+  background: var(--color-hover);
+}
+
+.record-create-page__back:active {
+  transform: scale(0.98);
+}
+
+.record-create-page__back:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.record-create-page__back > i {
+  font-size: 16px;
+}
+
+.record-create-page__header {
+  margin: 36px 0 30px;
+}
+
+.record-create-page__eyebrow,
+.record-create-page__section-label {
+  display: block;
+  color: var(--color-muted);
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.16em;
+}
+
+.record-create-page__title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.record-create-page__icon {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 17px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 24px;
+}
+
+.record-create-page__title-row h1 {
+  margin: 0;
+  font-size: clamp(30px, 4vw, 43px);
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 1.15;
+}
+
+.record-create-page__title-row p {
+  max-width: 620px;
+  margin: 12px 0 0;
+  color: var(--color-muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.record-create-page__form-card {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  background: var(--color-surface);
+  box-shadow: 0 18px 55px rgb(0 0 0 / 5%);
+}
+
+.record-create-page__form-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 25px 30px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.record-create-page__form-heading h2 {
+  margin: 10px 0 0;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+.record-create-page__form-heading p {
+  margin: 7px 0 0;
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.record-create-page__form-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+  border-radius: 13px;
+  background: var(--color-hover);
+  color: var(--color-text);
+  font-size: 20px;
+}
+
+.record-create-page__form-body {
+  padding: 28px 30px 30px;
+}
+
+/* Override dialog layout only inside the standalone create screen. */
+
+.record-create-page .feature-dialog__form {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.record-create-page .metadata-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 22px;
+  border-top: 1px solid var(--color-border);
+}
+
+.record-create-page__footnote {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 2px 0;
+  color: var(--color-muted);
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.record-create-page__footnote > i {
+  color: #43a982;
+  font-size: 15px;
+}
+
+@media (max-width: 700px) {
+  .record-create-page {
+    padding: 118px 20px 48px;
+  }
+
+  .record-create-page__header {
+    margin-top: 28px;
+  }
+
+  .record-create-page__title-row {
+    gap: 12px;
+  }
+
+  .record-create-page__icon {
+    width: 45px;
+    height: 45px;
+    flex-basis: 45px;
+    border-radius: 14px;
+    font-size: 21px;
+  }
+
+  .record-create-page__form-card {
+    border-radius: 19px;
+  }
+
+  .record-create-page__form-heading {
+    padding: 21px;
+  }
+
+  .record-create-page__form-body {
+    padding: 22px 20px;
+  }
+}
+
+@media (max-width: 420px) {
+  .record-create-page {
+    padding-inline: 15px;
+  }
+
+  .record-create-page__form-heading {
+    padding: 18px;
+  }
+
+  .record-create-page__form-icon {
+    display: none;
+  }
+
+  .record-create-page__form-body {
+    padding: 20px 15px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .record-create-page__back {
+    transition: none;
+  }
+}

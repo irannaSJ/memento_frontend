@@ -782,7 +782,7 @@ export function RecordDetailPage({
         </div>
       </header>
 
-      <nav
+      {/* <nav
         className="record-detail__section-nav"
         aria-label="Record sections"
       >
@@ -813,55 +813,7 @@ export function RecordDetailPage({
           <i className="ri-book-open-line" aria-hidden="true" />
           Description
         </button>
-      </nav>
-
-      <section
-        ref={detailSectionRef}
-        className="record-detail__section"
-        aria-labelledby="record-detail-fields-heading"
-      >
-        <div className="record-detail__section-heading">
-          <div>
-            <span className="record-detail__section-index">01 / THE BASICS</span>
-
-            <h2 id="record-detail-fields-heading">
-              {isProject ? 'Project details' : 'Task details'}
-            </h2>
-
-            <p>
-              Everything important about this {isProject ? 'project' : 'task'},
-              organised in one place.
-            </p>
-          </div>
-
-          <span className="record-detail__section-symbol" aria-hidden="true">
-            <i className="ri-layout-grid-line" />
-          </span>
-        </div>
-
-        <div className="record-detail__grid">
-          {detailFields.map((field, index) => (
-            <div
-              className="record-detail__field"
-              key={field.label}
-              data-field-index={index}
-            >
-              <div className="record-detail__field-icon" aria-hidden="true">
-                <i className={getDetailIcon(field.label)} />
-              </div>
-
-              <div className="record-detail__field-copy">
-                <span>{field.label}</span>
-                <strong>{field.value}</strong>
-              </div>
-
-              <span className="record-detail__field-decoration" aria-hidden="true">
-                <i className="ri-arrow-up-right-line" />
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
+      </nav> */}
 
       <section
         ref={descriptionSectionRef}
@@ -870,7 +822,7 @@ export function RecordDetailPage({
       >
         <div className="record-detail__section-heading record-detail__description-heading">
           <div>
-            <span className="record-detail__section-index">02 / THE FULL STORY</span>
+            <span className="record-detail__section-index">01 / THE FULL STORY</span>
 
             <h2 id="record-detail-description-heading">
               {isProject ? 'Project description' : 'Task description'}
@@ -977,6 +929,60 @@ export function RecordDetailPage({
           </div>
         </div>
       </section>
+
+
+      <section
+        ref={detailSectionRef}
+        className="record-detail__section"
+        aria-labelledby="record-detail-fields-heading"
+      >
+        <div className="record-detail__section-heading">
+          <div>
+            <span className="record-detail__section-index">02 / THE BASICS</span>
+
+            <h2 id="record-detail-fields-heading">
+              {isProject ? 'Project details' : 'Task details'}
+            </h2>
+
+            <p>
+              Everything important about this {isProject ? 'project' : 'task'},
+              organised in one place.
+            </p>
+          </div>
+
+          <span className="record-detail__section-symbol" aria-hidden="true">
+            <i className="ri-layout-grid-line" />
+          </span>
+        </div>
+
+        <div className="record-detail__grid">
+          {detailFields.map((field, index) => (
+            <div
+              className="record-detail__field"
+              key={field.label}
+              data-field-index={index}
+            >
+              <div className="record-detail__field-icon" aria-hidden="true">
+                <i className={getDetailIcon(field.label)} />
+              </div>
+
+              <div className="record-detail__field-copy">
+                <span>{field.label}</span>
+                <strong>{field.value}</strong>
+              </div>
+
+              <span className="record-detail__field-decoration" aria-hidden="true">
+                <i className="ri-arrow-up-right-line" />
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+
+
+
+
 
       {imagePreview && (
         <div className="record-detail__image-preview">

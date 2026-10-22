@@ -420,3 +420,202 @@
     animation: none;
   }
 }
+
+
+
+/* =========================================
+   Record filters
+   ========================================= */
+
+.record-page__filters {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  /* margin-top: 18px; */
+  margin: 18px 0px;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-surface);
+}
+
+.record-page__filters-heading {
+  display: flex;
+  align-items: center;
+  align-self: center;
+  gap: 8px;
+  margin-right: 4px;
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.record-page__filters-heading i {
+  font-size: 17px;
+}
+
+.record-page__filter-field {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 150px;
+  gap: 7px;
+  min-width: 130px;
+  max-width: 230px;
+}
+
+.record-page__filter-field > span {
+  color: var(--color-muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.record-page__filter-field select,
+.record-page__filter-field input {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  box-sizing: border-box;
+  padding: 9px 11px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-page);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 12px;
+}
+
+.record-page__filter-field select:focus-visible,
+.record-page__filter-field input:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.record-page__clear-filters {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 9px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-muted);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.record-page__clear-filters:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+/* =========================================
+   Related project/task context
+   ========================================= */
+
+.record-page__relation-context {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin: 20px 0;
+  padding: 15px 17px;
+  border: 1px solid var(--color-border);
+  border-radius: 15px;
+  background: var(--color-surface);
+}
+
+.record-page__relation-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--color-hover);
+  color: var(--color-text);
+  font-size: 19px;
+}
+
+.record-page__relation-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.record-page__relation-copy > span {
+  color: var(--color-muted);
+  font-size: 10px;
+}
+
+.record-page__relation-copy > strong {
+  overflow-wrap: anywhere;
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.record-page__relation-context > button {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.record-page__relation-context > button:hover {
+  background: var(--color-hover);
+}
+
+/* A record card can open its related records. */
+
+.record-card[role='link'] {
+  cursor: pointer;
+}
+
+.record-card[role='link']:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 4px;
+}
+
+@media (max-width: 650px) {
+  .record-page__filters {
+    align-items: stretch;
+    padding: 13px;
+  }
+
+  .record-page__filters-heading {
+    width: 100%;
+    padding-bottom: 3px;
+  }
+
+  .record-page__filter-field {
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  .record-page__clear-filters {
+    align-self: flex-start;
+  }
+
+  .record-page__relation-context {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .record-page__relation-context > button {
+    margin-left: 53px;
+  }
+}

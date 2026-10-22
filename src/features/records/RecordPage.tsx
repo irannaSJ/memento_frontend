@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import gsap from 'gsap'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import {
   mementoApi,
@@ -13,9 +13,47 @@ import { RecordTable } from '../../components/list/RecordTable'
 import { RecordCard } from '../../components/list/RecordCard'
 import { RecordUpdateDialog } from '../../components/form/RecordUpdateDialog'
 
+
 import './RecordPage.css'
 
 const PAGE_LENGTH = 20
+
+const FILTER_FIELDS_BY_FEATURE: Record<
+  FeatureDefinition['id'],
+  string[]
+> = {
+  projects: ['status', 'category', 'priority_level'],
+  tasks: ['status', 'priority', 'project'],
+  todo: ['status', 'priority', 'date'],
+  activity: ['task_id', 'today'],
+}
+
+const LINK_FILTER_DOCTYPES: Partial<
+  Record<FeatureDefinition['id'], Record<string, string>>
+> = {
+  tasks: {
+    project: 'My Projects',
+  },
+  activity: {
+    task_id: 'Tasks',
+  },
+}
+
+interface FilterOption {
+  value: string
+  label: string
+}
+
+function getSelectOptions(options: unknown): string[] {
+  if (typeof options !== 'string') return []
+
+  return options
+    .split('\n')
+    .map((option) => option.trim())
+    .filter(Boolean)
+}
+
+
 
 interface RecordPageProps {
   feature: FeatureDefinition
@@ -33,6 +71,31 @@ function getErrorMessage(error: unknown): string {
 export function RecordPage({ feature, onBack }: RecordPageProps) {
   const doctype = feature.doctype
   const navigate = useNavigate()
+
+  const location = useLocation()
+
+  const queryParams = useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search],
+  )
+
+  const activeFilters = useMemo<Record<string, unknown>>(() => {
+    const result: Record<string, unknown> = {}
+
+    for (const fieldname of FILTER_FIELDS_BY_FEATURE[feature.id]) {
+      const value = queryParams.get(fieldname)
+
+      if (value) {
+        result[fieldname] = value
+      }
+    }
+
+    return result
+  }, [feature.id, queryParams])
+
+  const [linkFilterOptions, setLinkFilterOptions] =
+    useState<Record<string, FilterOption[]>>({})
+
   const pageRef = useRef<HTMLElement>(null)
 
   const isCardFeature = feature.id === 'projects' || feature.id === 'tasks'
@@ -57,6 +120,32 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
   // This also handles navigation between Projects and Tasks when this component
   // instance is reused by the router.
   const [introFeatureId, setIntroFeatureId] = useState<string | null>(null)
+
+  const relationContext = useMemo(() => {
+    if (feature.id === 'tasks') {
+      const project = queryParams.get('project')
+      if (project) {
+        return {
+          fieldname: 'project',
+          label: queryParams.get('project_label') || project,
+          message: 'Tasks for project',
+        }
+      }
+    }
+
+    if (feature.id === 'activity') {
+      const task = queryParams.get('task_id')
+      if (task) {
+        return {
+          fieldname: 'task_id',
+          label: queryParams.get('task_label') || task,
+          message: 'Activity for task',
+        }
+      }
+    }
+
+    return null
+  }, [feature.id, queryParams])
 
   // Animate the top section of Projects and Tasks on entry.
   useEffect(() => {
@@ -112,6 +201,9 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
     return () => context.revert()
   }, [feature.id, isCardFeature])
 
+
+  
+
   // Reveal records only after the top section has finished and the current
   // request has completed. This prevents the cards from appearing too early.
   useEffect(() => {
@@ -165,6 +257,8 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
   // Load the visible list columns and field metadata.
   useEffect(() => {
     let cancelled = false
+    setMetadataLoading(true)
+    setMetadataError(null)
 
     void mementoApi
       .getDocTypeMetadata(doctype, 'list')
@@ -189,16 +283,20 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
     }
   }, [doctype, metadataRefreshKey])
 
-  // Load records whenever search, page, feature, or refresh state changes.
+  // Load records whenever search, filters, page, feature, or refresh state changes.
   useEffect(() => {
     let cancelled = false
+    setRecordsLoading(true)
+    setRecordsError(null)
 
-    void mementoApi
-      .getDocTypeRecords({
+    void mementoApi.getDocTypeRecords({
         doctype,
         start,
         page_length: PAGE_LENGTH,
         ...(activeSearch ? { search: activeSearch } : {}),
+        ...(Object.keys(activeFilters).length > 0
+          ? { filters: activeFilters }
+          : {}),
       })
       .then((response) => {
         if (cancelled) return
@@ -222,7 +320,139 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
     return () => {
       cancelled = true
     }
-  }, [doctype, start, activeSearch, recordsRefreshKey])
+  }, [doctype, start, activeSearch, activeFilters, recordsRefreshKey])
+
+
+
+  useEffect(() => {
+    setStart(0)
+    setRecordsError(null)
+  }, [feature.id, location.search])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadLinkFilterOptions() {
+      const linkedDoctypes =
+        LINK_FILTER_DOCTYPES[feature.id] ?? {}
+
+      const entries = await Promise.all(
+        Object.entries(linkedDoctypes).map(
+          async ([fieldname, linkedDoctype]) => {
+            try {
+              const response = await mementoApi.getDocTypeRecords({
+                doctype: linkedDoctype,
+                start: 0,
+                page_length: 100,
+              })
+
+              const choices: FilterOption[] = response.data.map(
+                (record) => ({
+                  value: record.name,
+                  label: String(
+                    record.project_name ??
+                      record.task_name ??
+                      record.name,
+                  ),
+                }),
+              )
+
+              return [fieldname, choices] as const
+            } catch {
+              return [fieldname, [] as FilterOption[]] as const
+            }
+          },
+        ),
+      )
+
+      if (cancelled) return
+
+      const nextOptions: Record<string, FilterOption[]> = {}
+
+      for (const [fieldname, choices] of entries) {
+        nextOptions[fieldname] = choices
+      }
+
+      setLinkFilterOptions(nextOptions)
+    }
+
+    void loadLinkFilterOptions()
+
+    return () => {
+      cancelled = true
+    }
+  }, [feature.id])
+
+
+
+  function updateFilter(fieldname: string, value: string) {
+    const params = new URLSearchParams(location.search)
+
+    if (value) {
+      params.set(fieldname, value)
+    } else {
+      params.delete(fieldname)
+    }
+
+    // Keep the selected project's/task's readable label in the URL.
+    const contextLabelKey =
+      feature.id === 'tasks' && fieldname === 'project'
+        ? 'project_label'
+        : feature.id === 'activity' && fieldname === 'task_id'
+          ? 'task_label'
+          : null
+
+    if (contextLabelKey) {
+      const option = linkFilterOptions[fieldname]?.find(
+        (item) => item.value === value,
+      )
+
+      if (option) {
+        params.set(contextLabelKey, option.label)
+      } else if (!value) {
+        params.delete(contextLabelKey)
+      }
+    }
+
+    setStart(0)
+    setRecordsLoading(true)
+    setRecordsError(null)
+
+    navigate(
+      {
+        pathname: location.pathname,
+        search: params.toString() ? `?${params.toString()}` : '',
+      },
+      { replace: true },
+    )
+  }
+
+  function clearFilters() {
+    const params = new URLSearchParams(location.search)
+
+    for (const fieldname of FILTER_FIELDS_BY_FEATURE[feature.id]) {
+      params.delete(fieldname)
+    }
+
+    params.delete('project_label')
+    params.delete('task_label')
+
+    setStart(0)
+    setRecordsLoading(true)
+    setRecordsError(null)
+
+    navigate(
+      {
+        pathname: location.pathname,
+        search: params.toString() ? `?${params.toString()}` : '',
+      },
+      { replace: true },
+    )
+  }
+
+
+
+
 
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -252,7 +482,7 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
     setActiveSearch('')
   }
 
-  const pageNumber = Math.floor(start / PAGE_LENGTH) + 1
+  // const pageNumber = Math.floor(start / PAGE_LENGTH) + 1
 
   return (
     <section
@@ -323,6 +553,150 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
             Refresh
           </button>
         </div>
+
+
+
+        <div className="record-page__filters">
+          <div className="record-page__filters-heading">
+            <i className="ri-equalizer-2-line" aria-hidden="true" />
+            <span>Filter records</span>
+          </div>
+
+          {FILTER_FIELDS_BY_FEATURE[feature.id]
+            .map((fieldname) =>
+              metadata?.fields.find(
+                (field) => field.fieldname === fieldname,
+              ),
+            )
+            .filter((field) => field && !field.hidden)
+            .map((field) => {
+              if (!field) return null
+
+              const fieldname = field.fieldname
+              const value = String(activeFilters[fieldname] ?? '')
+              const options = getSelectOptions(
+                'options' in field ? field.options : undefined
+              )
+              const linkOptions = linkFilterOptions[fieldname] ?? []
+
+              const selectedLabel =
+                fieldname === 'project'
+                  ? queryParams.get('project_label')
+                  : fieldname === 'task_id'
+                    ? queryParams.get('task_label')
+                    : null
+
+              const choices =
+                value && !linkOptions.some((option) => option.value === value)
+                  ? [
+                      {
+                        value,
+                        label: selectedLabel || value,
+                      },
+                      ...linkOptions,
+                    ]
+                  : linkOptions
+
+              return (
+                <label
+                  className="record-page__filter-field"
+                  key={fieldname}
+                >
+                  <span>{field.label}</span>
+
+                  {field.fieldtype === 'Select' ? (
+                    <select
+                      value={value}
+                      onChange={(event) =>
+                        updateFilter(fieldname, event.target.value)
+                      }
+                    >
+                      <option value="">All {field.label}</option>
+
+                      {options.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  ) : field.fieldtype === 'Date' ? (
+                    <input
+                      type="date"
+                      value={value}
+                      aria-label={`Filter by ${field.label}`}
+                      onChange={(event) =>
+                        updateFilter(fieldname, event.target.value)
+                      }
+                    />
+                  ) : field.fieldtype === 'Link' ? (
+                    <select
+                      value={value}
+                      onChange={(event) =>
+                        updateFilter(fieldname, event.target.value)
+                      }
+                    >
+                      <option value="">
+                        All {field.label}
+                      </option>
+
+                      {choices.map((option) => (
+                        <option
+                          key={option.value}
+                          value={option.value}
+                        >
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      value={value}
+                      aria-label={`Filter by ${field.label}`}
+                      placeholder={`Enter ${field.label}`}
+                      onChange={(event) =>
+                        updateFilter(fieldname, event.target.value)
+                      }
+                    />
+                  )}
+                </label>
+              )
+            })}
+
+          {Object.keys(activeFilters).length > 0 && (
+            <button
+              type="button"
+              className="record-page__clear-filters"
+              onClick={clearFilters}
+            >
+              <i className="ri-close-line" aria-hidden="true" />
+              Clear filters
+            </button>
+          )}
+        </div>
+
+        {relationContext && (
+          <div className="record-page__relation-context" role="status">
+            <div>
+              <span>{relationContext.message}</span>
+              <strong>{relationContext.label}</strong>
+            </div>
+            <button type="button" onClick={() => {
+              const params = new URLSearchParams(location.search)
+              params.delete(relationContext.fieldname)
+              params.delete(feature.id === 'tasks' ? 'project_label' : 'task_label')
+              setStart(0)
+              setRecordsLoading(true)
+              setRecordsError(null)
+              navigate({
+                pathname: location.pathname,
+                search: params.toString() ? `?${params.toString()}` : '',
+              }, { replace: true })
+            }}>
+              Show all {feature.id === 'tasks' ? 'tasks' : 'activity'}
+            </button>
+          </div>
+        )}
       </div>
 
       {actionMessage && (
@@ -372,7 +746,7 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
         </div>
       )}
 
-      <div className="record-page__summary">
+      {/* <div className="record-page__summary">
         <div>
           <span className="record-page__summary-label">CURRENT PAGE</span>
           <strong>{String(pageNumber).padStart(2, '0')}</strong>
@@ -381,9 +755,13 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
         <span className="record-page__summary-note">
           {activeSearch
             ? `Search results for “${activeSearch}”`
-            : 'Workspace records'}
+            : relationContext
+              ? `${relationContext.message}: ${relationContext.label}`
+              : Object.keys(activeFilters).length > 0
+                ? 'Filtered workspace records'
+                : 'Workspace records'}
         </span>
-      </div>
+      </div> */}
 
       {metadataLoading && !metadata ? (
         <div className="record-page__loading" role="status">
@@ -403,6 +781,29 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
                 navigate(`/${feature.id}/${encodeURIComponent(record.name)}`)
               }}
               onUpdate={() => setEditingRecordName(record.name)}
+              onCardClick={() => {
+                if (feature.id === 'projects') {
+                  const projectLabel = String(
+                    record.project_name ?? record.name,
+                  )
+
+                  navigate(
+                    `/tasks?project=${encodeURIComponent(record.name)}&project_label=${encodeURIComponent(projectLabel)}`,
+                  )
+
+                  return
+                }
+
+                if (feature.id === 'tasks') {
+                  const taskLabel = String(
+                    record.task_name ?? record.name,
+                  )
+
+                  navigate(
+                    `/activity?task_id=${encodeURIComponent(record.name)}&task_label=${encodeURIComponent(taskLabel)}`,
+                  )
+                }
+              }}
             />
           ))}
 
