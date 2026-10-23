@@ -27,7 +27,52 @@
 }
 
 /* Left section: icon and status */
-.record-card__top {
+/* .record-card__top {
+  
+} */
+
+/* Project — soft lavender */
+.record-card__top--projects {
+  background: #b0a2df;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 22px;
+  border-right: 1px solid var(--color-border);
+}
+
+/* Task — soft mint green */
+.record-card__top--tasks {
+  background: #b8e0d2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 22px;
+  border-right: 1px solid var(--color-border);
+}
+
+/* Daily To-Do — soft warm yellow */
+.record-card__top--todo {
+  background: #f5dfad;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 22px;
+  border-right: 1px solid var(--color-border);
+}
+
+/* Activity Logs — soft blue */
+.record-card__top--activity {
+  background: #b8d9ef;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -337,5 +382,39 @@
   .record-card:hover .record-card__icon,
   .record-card__read-more:hover > i {
     transform: none;
+  }
+}
+
+
+
+/* Linked project name on Task cards */
+.record-card__related-project {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  margin: 8px 0 10px;
+  min-width: 0;
+}
+
+.record-card__related-project-label {
+  color: var(--color-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1.4;
+}
+
+.record-card__related-project-name {
+  color: var(--color-text);
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .record-card__related-project-name {
+    font-size: 14px;
   }
 }

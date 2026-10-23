@@ -15,6 +15,7 @@ interface RecordCardProps {
   onUpdate: () => void
   /** Opens the related records view when the card body is activated. */
   onCardClick?: () => void
+  relatedProjectName?: string
 }
 
 function displayText(value: unknown): string {
@@ -85,6 +86,7 @@ export function RecordCard({
   onReadMore,
   onUpdate,
   onCardClick,
+  relatedProjectName,
 }: RecordCardProps) {
   const isProject = feature.id === 'projects'
 
@@ -125,14 +127,14 @@ export function RecordCard({
 
   return (
     <article
-      className="record-card"
+      className="record-card "
       role={onCardClick ? 'link' : undefined}
       tabIndex={onCardClick ? 0 : undefined}
       aria-label={onCardClick ? `Open related records for ${title}` : undefined}
       onClick={handleCardClick}
       onKeyDown={handleCardKeyDown}
     >
-      <div className="record-card__top">
+      <div className={`record-card__top record-card__top--${feature.id}`}>
         <span className="record-card__icon" aria-hidden="true">
           <i className={isProject ? 'ri-folder-3-line' : 'ri-task-line'} />
         </span>
@@ -148,6 +150,19 @@ export function RecordCard({
         </p>
 
         <h2 className="record-card__title">{title}</h2>
+
+
+        {!isProject && relatedProjectName && (
+          <div className="record-card__related-project">
+            <span className="record-card__related-project-label">
+              PROJECT
+            </span>
+
+            <strong className="record-card__related-project-name">
+              {relatedProjectName}
+            </strong>
+          </div>
+        )}
 
         <p className="record-card__description">
           {excerpt || 'No description has been added yet.'}

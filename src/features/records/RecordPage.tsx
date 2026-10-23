@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useRef,useMemo, useState, type FormEvent } from 'react'
 import gsap from 'gsap'
-import { useLocation, useNavigate } from 'react-router-dom'
+import {useLocation, useNavigate } from 'react-router-dom'
 
 import {
   mementoApi,
@@ -17,6 +17,7 @@ import { RecordUpdateDialog } from '../../components/form/RecordUpdateDialog'
 import './RecordPage.css'
 
 const PAGE_LENGTH = 20
+
 
 const FILTER_FIELDS_BY_FEATURE: Record<
   FeatureDefinition['id'],
@@ -96,6 +97,8 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
   const [linkFilterOptions, setLinkFilterOptions] =
     useState<Record<string, FilterOption[]>>({})
 
+
+
   const pageRef = useRef<HTMLElement>(null)
 
   const isCardFeature = feature.id === 'projects' || feature.id === 'tasks'
@@ -120,32 +123,6 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
   // This also handles navigation between Projects and Tasks when this component
   // instance is reused by the router.
   const [introFeatureId, setIntroFeatureId] = useState<string | null>(null)
-
-  const relationContext = useMemo(() => {
-    if (feature.id === 'tasks') {
-      const project = queryParams.get('project')
-      if (project) {
-        return {
-          fieldname: 'project',
-          label: queryParams.get('project_label') || project,
-          message: 'Tasks for project',
-        }
-      }
-    }
-
-    if (feature.id === 'activity') {
-      const task = queryParams.get('task_id')
-      if (task) {
-        return {
-          fieldname: 'task_id',
-          label: queryParams.get('task_label') || task,
-          message: 'Activity for task',
-        }
-      }
-    }
-
-    return null
-  }, [feature.id, queryParams])
 
   // Animate the top section of Projects and Tasks on entry.
   useEffect(() => {
@@ -257,8 +234,6 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
   // Load the visible list columns and field metadata.
   useEffect(() => {
     let cancelled = false
-    setMetadataLoading(true)
-    setMetadataError(null)
 
     void mementoApi
       .getDocTypeMetadata(doctype, 'list')
@@ -283,11 +258,9 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
     }
   }, [doctype, metadataRefreshKey])
 
-  // Load records whenever search, filters, page, feature, or refresh state changes.
+  // Load records whenever search, page, feature, or refresh state changes.
   useEffect(() => {
     let cancelled = false
-    setRecordsLoading(true)
-    setRecordsError(null)
 
     void mementoApi.getDocTypeRecords({
         doctype,
@@ -320,14 +293,9 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
     return () => {
       cancelled = true
     }
-  }, [doctype, start, activeSearch, activeFilters, recordsRefreshKey])
+  }, [doctype, start, activeSearch,activeFilters, recordsRefreshKey])
 
 
-
-  useEffect(() => {
-    setStart(0)
-    setRecordsError(null)
-  }, [feature.id, location.search])
 
   useEffect(() => {
     let cancelled = false
@@ -359,8 +327,7 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
 
               return [fieldname, choices] as const
             } catch {
-              return [fieldname, [] as FilterOption[]] as const
-            }
+                return [fieldname, [] as FilterOption[]] as const            }
           },
         ),
       )
@@ -552,6 +519,18 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
             <i className="ri-refresh-line" aria-hidden="true" />
             Refresh
           </button>
+
+          {feature.id === 'tasks' && (
+            <button
+              type="button"
+              className="record-page__secondary-button record-page__todo-button"
+              onClick={() => navigate('/daily-todo')}
+              aria-label="Open Daily To-Do"
+            >
+              <i className="ri-list-check-2" aria-hidden="true" />
+              Daily To-Do
+            </button>
+          )}
         </div>
 
 
@@ -574,9 +553,7 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
 
               const fieldname = field.fieldname
               const value = String(activeFilters[fieldname] ?? '')
-              const options = getSelectOptions(
-                'options' in field ? field.options : undefined
-              )
+              const options = getSelectOptions(field.options)
               const linkOptions = linkFilterOptions[fieldname] ?? []
 
               const selectedLabel =
@@ -674,29 +651,6 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
             </button>
           )}
         </div>
-
-        {relationContext && (
-          <div className="record-page__relation-context" role="status">
-            <div>
-              <span>{relationContext.message}</span>
-              <strong>{relationContext.label}</strong>
-            </div>
-            <button type="button" onClick={() => {
-              const params = new URLSearchParams(location.search)
-              params.delete(relationContext.fieldname)
-              params.delete(feature.id === 'tasks' ? 'project_label' : 'task_label')
-              setStart(0)
-              setRecordsLoading(true)
-              setRecordsError(null)
-              navigate({
-                pathname: location.pathname,
-                search: params.toString() ? `?${params.toString()}` : '',
-              }, { replace: true })
-            }}>
-              Show all {feature.id === 'tasks' ? 'tasks' : 'activity'}
-            </button>
-          </div>
-        )}
       </div>
 
       {actionMessage && (
@@ -755,11 +709,7 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
         <span className="record-page__summary-note">
           {activeSearch
             ? `Search results for “${activeSearch}”`
-            : relationContext
-              ? `${relationContext.message}: ${relationContext.label}`
-              : Object.keys(activeFilters).length > 0
-                ? 'Filtered workspace records'
-                : 'Workspace records'}
+            : 'Workspace records'}
         </span>
       </div> */}
 
@@ -774,6 +724,14 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
               key={record.name}
               feature={feature}
               record={record}
+              relatedProjectName={
+                feature.id === 'tasks'
+                  ? linkFilterOptions.project?.find(
+                      (option) =>
+                        option.value === String(record.project ?? ''),
+                    )?.label
+                  : undefined
+              }
               canUpdate={metadata.capabilities.can_update}
               updating={editingRecordName !== null}
               isUpdating={editingRecordName === record.name}

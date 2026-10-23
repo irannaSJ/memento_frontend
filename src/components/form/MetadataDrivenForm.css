@@ -1,8 +1,49 @@
 .metadata-form {
-  display: flex;
-  flex-direction: column;
-  gap: 19px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 19px 22px;
   padding: 23px 27px 27px;
+  align-items: start;
+}
+
+/* Keep error messages and the action buttons full-width */
+.metadata-form > .metadata-form__error,
+.metadata-form > .metadata-form__empty,
+.metadata-form > .metadata-form__actions {
+  grid-column: 1 / -1;
+}
+
+/* Keep Description and the rich-text editor full-width */
+.metadata-form > .metadata-form__field:has(.rich-text-editor),
+.metadata-form > .metadata-form__field:has(.rich-text-editor__toolbar) {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+/* Prevent fields and editor content from overflowing their columns */
+.metadata-form > .metadata-form__field {
+  min-width: 0;
+}
+
+.metadata-form .rich-text-editor {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Tablet and mobile: return to a single column */
+@media (max-width: 680px) {
+  .metadata-form {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 17px;
+    padding: 20px;
+  }
+
+  .metadata-form > .metadata-form__field,
+  .metadata-form > .metadata-form__error,
+  .metadata-form > .metadata-form__empty,
+  .metadata-form > .metadata-form__actions {
+    grid-column: 1 / -1;
+  }
 }
 
 .metadata-form__field {

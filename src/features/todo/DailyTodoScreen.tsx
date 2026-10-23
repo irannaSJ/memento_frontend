@@ -52,6 +52,19 @@ function formatDateHeading(date: Date): string {
   }).format(date)
 }
 
+function localDateKey(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function formatSelectedDay(value: string): string {
+  if (!value) return 'All dates'
+  const [year, month, day] = value.split('-').map(Number)
+  return formatDateHeading(new Date(year, month - 1, day))
+}
+
 function getText(value: unknown): string {
   if (typeof value !== 'string') return ''
   if (typeof DOMParser === 'undefined') return value.trim()
@@ -65,6 +78,8 @@ export function DailyTodoScreen({ projects: suppliedProjects, onBack }: DailyTod
   const [projectOptions, setProjectOptions] = useState<DailyTodoProjectOption[]>(suppliedProjects ?? [])
   const [projectLoadNote, setProjectLoadNote] = useState<string | null>(null)
   const [viewFilter, setViewFilter] = useState<TodoViewFilter>('all')
+  const [selectedDate, setSelectedDate] = useState(() => localDateKey(new Date()))
+  const [selectedProjectFilter, setSelectedProjectFilter] = useState('all')
   const [title, setTitle] = useState('')
   const [projectId, setProjectId] = useState('')
   const [priority, setPriority] = useState<DailyTodoPriority>('Medium')
@@ -112,8 +127,19 @@ export function DailyTodoScreen({ projects: suppliedProjects, onBack }: DailyTod
     }
   }, [suppliedProjects])
 
+  const scopedItems = useMemo(() => {
+    return items.filter((item) => {
+      const matchesDate =
+        !selectedDate || localDateKey(new Date(item.startedAt)) === selectedDate
+      const matchesProject =
+        selectedProjectFilter === 'all' || item.projectId === selectedProjectFilter
+
+      return matchesDate && matchesProject
+    })
+  }, [items, selectedDate, selectedProjectFilter])
+
   const visibleItems = useMemo(() => {
-    const matching = items.filter((item) => {
+    const matching = scopedItems.filter((item) => {
       if (viewFilter === 'open') return !item.completed
       if (viewFilter === 'completed') return item.completed
       return true
@@ -123,12 +149,13 @@ export function DailyTodoScreen({ projects: suppliedProjects, onBack }: DailyTod
       if (a.completed !== b.completed) return Number(a.completed) - Number(b.completed)
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     })
-  }, [items, viewFilter])
+  }, [scopedItems, viewFilter])
 
-  const completedCount = items.filter((item) => item.completed).length
-  const openCount = items.length - completedCount
-  const selectedProject = projectOptions.find((project) => project.id === projectId)
-
+  const completedCount = scopedItems.filter((item) => item.completed).length
+  const openCount = scopedItems.length - completedCount
+  const selectedProjectName = projectOptions.find(
+    (project) => project.id === selectedProjectFilter,
+  )?.label
   function resetForm() {
     setTitle('')
     setProjectId('')
@@ -211,8 +238,8 @@ export function DailyTodoScreen({ projects: suppliedProjects, onBack }: DailyTod
 
         <div className="daily-todo-screen__stats" aria-label="To-do summary">
           <div className="daily-todo-screen__stat">
-            <span>ALL ITEMS</span>
-            <strong>{items.length}</strong>
+            <span>ITEMS IN VIEW</span>
+            <strong>{scopedItems.length}</strong>
           </div>
           <div className="daily-todo-screen__stat">
             <span>TO DO</span>
@@ -229,11 +256,18 @@ export function DailyTodoScreen({ projects: suppliedProjects, onBack }: DailyTod
         <div className="daily-todo-screen__section-heading">
           <div>
             <span className="daily-todo-screen__eyebrow">YOUR CHECKLIST</span>
-            <h2 id="daily-todo-list-heading">Today’s items</h2>
+            <h2 id="daily-todo-list-heading">
+              {selectedDate ? (selectedDate === localDateKey(new Date()) ? 'Today’s items' : formatSelectedDay(selectedDate)) : 'All To-do items'}
+            </h2>
+            <p className="daily-todo-screen__scope-note">
+              {selectedProjectFilter === 'all'
+                ? (selectedDate ? formatSelectedDay(selectedDate) : 'Every date')
+                : `${selectedProjectName ?? 'Selected project'} · ${selectedDate ? formatSelectedDay(selectedDate) : 'Every date'}`}
+            </p>
           </div>
-          <div className="daily-todo-screen__filters" role="group" aria-label="Filter to-do items">
-            {([
-              ['all', `All (${items.length})`],
+          <div className="daily-todo-screen__filters" role="group" aria-label="Filter by completion status">
+            {([ 
+              ['all', `All (${scopedItems.length})`],
               ['open', `To do (${openCount})`],
               ['completed', `Completed (${completedCount})`],
             ] as const).map(([filter, label]) => (
@@ -248,6 +282,49 @@ export function DailyTodoScreen({ projects: suppliedProjects, onBack }: DailyTod
               </button>
             ))}
           </div>
+        </div>
+
+        <div className="daily-todo-screen__query-filters" role="group" aria-label="Filter by day and project">
+          <label className="daily-todo-screen__query-field" htmlFor="daily-todo-filter-date">
+            <span><i className="ri-calendar-line" aria-hidden="true" /> Day</span>
+            <input
+              id="daily-todo-filter-date"
+              type="date"
+              value={selectedDate}
+              onChange={(event) => setSelectedDate(event.target.value)}
+              aria-label="Show to-do items started on this date"
+            />
+          </label>
+          <button
+            type="button"
+            className={`daily-todo-screen__all-dates${selectedDate === '' ? ' is-active' : ''}`}
+            onClick={() => setSelectedDate('')}
+            aria-pressed={selectedDate === ''}
+          >
+            All dates
+          </button>
+          {selectedDate === '' && (
+            <button
+              type="button"
+              className="daily-todo-screen__today"
+              onClick={() => setSelectedDate(localDateKey(new Date()))}
+            >
+              Today
+            </button>
+          )}
+          <label className="daily-todo-screen__query-field daily-todo-screen__query-field--project" htmlFor="daily-todo-filter-project">
+            <span><i className="ri-folder-3-line" aria-hidden="true" /> Project</span>
+            <select
+              id="daily-todo-filter-project"
+              value={selectedProjectFilter}
+              onChange={(event) => setSelectedProjectFilter(event.target.value)}
+            >
+              <option value="all">All projects</option>
+              {projectOptions.map((project) => (
+                <option key={project.id} value={project.id}>{project.label}</option>
+              ))}
+            </select>
+          </label>
         </div>
 
         {visibleItems.length === 0 ? (
@@ -315,18 +392,7 @@ export function DailyTodoScreen({ projects: suppliedProjects, onBack }: DailyTod
         )}
       </section>
 
-      <section className="daily-todo-composer" aria-labelledby="daily-todo-composer-heading">
-        <div className="daily-todo-composer__header">
-          <div>
-            <span className="daily-todo-screen__eyebrow">{editingId ? 'MAKE AN ADJUSTMENT' : 'ONE THING AT A TIME'}</span>
-            <h2 id="daily-todo-composer-heading">{editingId ? 'Modify to-do item' : 'What needs your attention?'}</h2>
-            <p>{editingId ? 'Update the title, project, or priority.' : 'Add a short action. You can add project context and priority too.'}</p>
-          </div>
-          <span className="daily-todo-composer__icon" aria-hidden="true">
-            <i className={editingId ? 'ri-edit-2-line' : 'ri-add-line'} />
-          </span>
-        </div>
-
+      <section className={`daily-todo-composer${editingId ? ' is-editing' : ''}`} aria-label={editingId ? 'Modify to-do item' : 'Add to-do'}>
         <form className="daily-todo-composer__form" onSubmit={handleSubmit}>
           <label className="daily-todo-composer__field daily-todo-composer__field--title" htmlFor="daily-todo-title">
             <span>To-do item <b aria-hidden="true">*</b></span>
@@ -339,6 +405,7 @@ export function DailyTodoScreen({ projects: suppliedProjects, onBack }: DailyTod
               maxLength={180}
               required
               autoComplete="off"
+              aria-label="To-do title"
             />
           </label>
 
@@ -348,6 +415,7 @@ export function DailyTodoScreen({ projects: suppliedProjects, onBack }: DailyTod
               id="daily-todo-project"
               value={projectId}
               onChange={(event) => setProjectId(event.target.value)}
+              aria-label="Assign to a project"
             >
               <option value="">No project selected</option>
               {projectOptions.map((project) => (
@@ -356,7 +424,7 @@ export function DailyTodoScreen({ projects: suppliedProjects, onBack }: DailyTod
             </select>
           </label>
 
-          <label className="daily-todo-composer__field" htmlFor="daily-todo-priority">
+          <label className="daily-todo-composer__field daily-todo-composer__field--priority" htmlFor="daily-todo-priority">
             <span>Priority</span>
             <select
               id="daily-todo-priority"
@@ -369,21 +437,20 @@ export function DailyTodoScreen({ projects: suppliedProjects, onBack }: DailyTod
             </select>
           </label>
 
-          {projectLoadNote && (
-            <p className="daily-todo-composer__note" role="status">{projectLoadNote}</p>
-          )}
-
           <div className="daily-todo-composer__actions">
             {editingId && (
               <button className="daily-todo-composer__cancel" type="button" onClick={resetForm}>
-                Cancel edit
+                Cancel
               </button>
             )}
             <button className="daily-todo-composer__submit" type="submit" disabled={!title.trim()}>
               <i className={editingId ? 'ri-save-line' : 'ri-add-line'} aria-hidden="true" />
-              {editingId ? 'Save changes' : 'Add to-do'}
+              {editingId ? 'Save' : 'Add To-do'}
             </button>
           </div>
+          {projectLoadNote && (
+            <p className="daily-todo-composer__note" role="status">{projectLoadNote}</p>
+          )}
         </form>
       </section>
     </main>

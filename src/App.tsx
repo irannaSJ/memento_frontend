@@ -39,8 +39,8 @@ import { RecordDetailPage } from './features/records/RecordDetailsPage'
 
 import { RecordPage } from './features/records/RecordPage'
 
-// import { DailyTodoScreen } from './features/todo/DailyTodoScreen'
-
+// import { DailyTodoRoute } from './features/todo/DailyTodoRoute'
+import { DailyTodoRoute } from './features/todo/DailyTodoRoute'
 function RecordsRoute({
   onBack,
 }: {
@@ -249,6 +249,10 @@ function MementoApp() {
             element={<Navigate to="/" replace />}
           />
 
+            <Route
+            path="/daily-todo"
+            element={<DailyTodoRoute />}
+          />
 
         </Routes>
       </main>

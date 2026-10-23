@@ -5,12 +5,15 @@
   --todo-muted: var(--color-muted, #77736f);
   --todo-border: var(--color-border, #e5e2df);
   --todo-accent: var(--color-focus, #4b46a8);
-  width: min(100%, 1240px);
-  margin: 0 auto;
-  padding: clamp(24px, 4vw, 52px) clamp(16px, 3vw, 32px) 64px;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  margin: 0;
+  padding: clamp(22px, 2.2vw, 38px) clamp(20px, 3.1vw, 58px) 145px;
   color: var(--todo-text);
 }
 
+.daily-todo-screen,
 .daily-todo-screen * {
   box-sizing: border-box;
 }
@@ -30,18 +33,19 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 28px;
-  margin-bottom: 40px;
+  margin-bottom: 28px;
 }
 
 .daily-todo-screen__heading-copy {
-  max-width: 690px;
+  min-width: 0;
+  max-width: 800px;
 }
 
 .daily-todo-screen__back {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -63,34 +67,35 @@
 }
 
 .daily-todo-screen__heading-copy h1 {
-  margin: 10px 0 12px;
-  font-size: clamp(34px, 4vw, 48px);
+  margin: 9px 0 9px;
+  font-size: clamp(32px, 3.3vw, 47px);
   line-height: 1.08;
   letter-spacing: -0.045em;
 }
 
 .daily-todo-screen__heading-copy > p {
-  max-width: 600px;
+  max-width: 660px;
   margin: 0;
   color: var(--todo-muted);
-  font-size: 14px;
-  line-height: 1.7;
+  font-size: 13px;
+  line-height: 1.65;
 }
 
 .daily-todo-screen__date {
   display: block;
-  margin-top: 17px;
+  margin-top: 13px;
   color: var(--todo-text);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 650;
 }
 
 .daily-todo-screen__stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(90px, 1fr));
-  min-width: min(100%, 320px);
+  grid-template-columns: repeat(3, minmax(78px, 1fr));
+  flex: 0 0 auto;
+  min-width: min(100%, 300px);
   border: 1px solid var(--todo-border);
-  border-radius: 16px;
+  border-radius: 14px;
   background: var(--todo-surface);
   overflow: hidden;
 }
@@ -98,8 +103,8 @@
 .daily-todo-screen__stat {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 17px 18px;
+  gap: 6px;
+  padding: 13px 15px;
 }
 
 .daily-todo-screen__stat + .daily-todo-screen__stat {
@@ -108,18 +113,22 @@
 
 .daily-todo-screen__stat span {
   color: var(--todo-muted);
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 750;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.07em;
+  line-height: 1.4;
 }
 
 .daily-todo-screen__stat strong {
-  font-size: 25px;
+  font-size: 22px;
   letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
 }
 
 .daily-todo-screen__list-section {
-  margin-bottom: 24px;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
 }
 
 .daily-todo-screen__section-heading {
@@ -127,67 +136,146 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
 }
 
-.daily-todo-screen__section-heading h2,
-.daily-todo-composer__header h2 {
-  margin: 7px 0 0;
-  font-size: 22px;
+.daily-todo-screen__section-heading h2 {
+  margin: 6px 0 0;
+  font-size: 21px;
   line-height: 1.25;
   letter-spacing: -0.025em;
 }
 
+.daily-todo-screen__scope-note {
+  margin: 4px 0 0;
+  color: var(--todo-muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
 .daily-todo-screen__filters {
   display: flex;
+  flex: 0 0 auto;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5px;
 }
 
-.daily-todo-screen__filter {
-  min-height: 34px;
-  padding: 7px 11px;
+.daily-todo-screen__filter,
+.daily-todo-screen__all-dates,
+.daily-todo-screen__today {
+  min-height: 32px;
+  padding: 7px 10px;
   border: 1px solid transparent;
-  border-radius: 9px;
+  border-radius: 8px;
   background: transparent;
   color: var(--todo-muted);
-  font-size: 11px !important;
+  font-size: 10px !important;
   font-weight: 650 !important;
+  white-space: nowrap;
 }
 
-.daily-todo-screen__filter:hover {
+.daily-todo-screen__filter:hover,
+.daily-todo-screen__all-dates:hover,
+.daily-todo-screen__today:hover {
   border-color: var(--todo-border);
   color: var(--todo-text);
 }
 
-.daily-todo-screen__filter.is-active {
+.daily-todo-screen__filter.is-active,
+.daily-todo-screen__all-dates.is-active {
   border-color: var(--todo-border);
   background: var(--todo-surface);
   color: var(--todo-text);
   box-shadow: 0 2px 8px rgb(0 0 0 / 3%);
 }
 
+.daily-todo-screen__query-filters {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 11px 13px;
+  border: 1px solid var(--todo-border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--todo-surface) 84%, var(--todo-page));
+}
+
+.daily-todo-screen__query-field {
+  display: flex;
+  flex: 0 1 190px;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+  color: var(--todo-text);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.daily-todo-screen__query-field > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--todo-muted);
+}
+
+.daily-todo-screen__query-field > span i {
+  font-size: 12px;
+}
+
+.daily-todo-screen__query-field input,
+.daily-todo-screen__query-field select {
+  width: 100%;
+  min-width: 0;
+  height: 35px;
+  padding: 0 10px;
+  border: 1px solid var(--todo-border);
+  border-radius: 8px;
+  background: var(--todo-surface);
+  color: var(--todo-text);
+  font-size: 11px;
+  font-weight: 450;
+}
+
+.daily-todo-screen__query-field input:focus-visible,
+.daily-todo-screen__query-field select:focus-visible {
+  outline: 2px solid var(--todo-accent);
+  outline-offset: 2px;
+}
+
+.daily-todo-screen__query-field--project {
+  flex-basis: 250px;
+}
+
+.daily-todo-screen__all-dates,
+.daily-todo-screen__today {
+  min-height: 35px;
+  border-color: var(--todo-border);
+  background: var(--todo-surface);
+}
+
 .daily-todo-screen__items {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .daily-todo-item {
   display: grid;
-  grid-template-columns: 24px minmax(0, 1fr) auto;
+  grid-template-columns: 23px minmax(0, 1fr) auto;
   align-items: start;
-  gap: 15px;
-  padding: 19px 20px;
+  gap: 13px;
+  padding: 14px 16px;
   border: 1px solid var(--todo-border);
-  border-radius: 15px;
+  border-radius: 13px;
   background: var(--todo-surface);
   transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
 }
 
 .daily-todo-item:hover {
   border-color: color-mix(in srgb, var(--todo-border), var(--todo-text) 13%);
-  box-shadow: 0 8px 22px rgb(0 0 0 / 3%);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 3%);
 }
 
 .daily-todo-item__check-wrap {
@@ -202,6 +290,7 @@
 .daily-todo-item__check-wrap input {
   position: absolute;
   inset: 0;
+  z-index: 1;
   width: 23px;
   height: 23px;
   margin: 0;
@@ -238,10 +327,10 @@
 }
 
 .daily-todo-item__title {
-  margin: 0 0 9px;
-  font-size: 14px;
+  margin: 0 0 7px;
+  font-size: 13px;
   font-weight: 700;
-  line-height: 1.5;
+  line-height: 1.45;
   overflow-wrap: anywhere;
 }
 
@@ -255,7 +344,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
 }
 
 .daily-todo-item__project,
@@ -263,13 +352,15 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  min-height: 25px;
-  padding: 4px 8px;
+  min-height: 23px;
+  max-width: 100%;
+  padding: 3px 7px;
   border: 1px solid var(--todo-border);
   border-radius: 7px;
   color: var(--todo-muted);
-  font-size: 10px;
-  line-height: 1.3;
+  font-size: 9px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .daily-todo-item__priority {
@@ -287,17 +378,17 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  margin: 10px 0 0;
+  margin: 7px 0 0;
   color: var(--todo-muted);
-  font-size: 10px;
-  line-height: 1.6;
+  font-size: 9px;
+  line-height: 1.5;
 }
 
 .daily-todo-item__completed-at {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  margin-left: 7px;
+  margin-left: 6px;
   color: #4e8061;
 }
 
@@ -305,15 +396,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  min-height: 34px;
-  padding: 7px 10px;
+  gap: 6px;
+  min-height: 32px;
+  padding: 6px 10px;
   border: 1px solid var(--todo-border);
-  border-radius: 9px;
+  border-radius: 8px;
   background: var(--todo-surface);
   color: var(--todo-muted);
-  font-size: 11px !important;
+  font-size: 10px !important;
   font-weight: 650 !important;
+  white-space: nowrap;
 }
 
 .daily-todo-item__edit:hover {
@@ -326,92 +418,150 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 205px;
-  padding: 32px 20px;
+  min-height: 170px;
+  padding: 24px 20px;
   border: 1px dashed var(--todo-border);
-  border-radius: 16px;
+  border-radius: 14px;
   background: var(--todo-surface);
   text-align: center;
 }
 
 .daily-todo-screen__empty-icon {
   display: grid;
-  width: 48px;
-  height: 48px;
+  width: 42px;
+  height: 42px;
   place-items: center;
-  margin-bottom: 12px;
-  border-radius: 15px;
+  margin-bottom: 10px;
+  border-radius: 13px;
   background: var(--todo-page);
   color: var(--todo-muted);
-  font-size: 24px;
+  font-size: 22px;
 }
 
 .daily-todo-screen__empty h3 {
   margin: 0;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .daily-todo-screen__empty p {
   max-width: 360px;
-  margin: 8px 0 0;
+  margin: 7px 0 0;
   color: var(--todo-muted);
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.6;
 }
 
+/* Persistent bottom composer: compact and visible while the list scrolls. */
 .daily-todo-composer {
-  overflow: hidden;
-  border: 1px solid var(--todo-border);
-  border-radius: 18px;
-  background: var(--todo-surface);
-  box-shadow: 0 10px 32px rgb(0 0 0 / 3%);
-}
-
-.daily-todo-composer__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 23px 25px;
-  border-bottom: 1px solid var(--todo-border);
-}
-
-.daily-todo-composer__header p {
-  margin: 8px 0 0;
-  color: var(--todo-muted);
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-.daily-todo-composer__icon {
-  display: grid;
-  flex: 0 0 auto;
-  width: 44px;
-  height: 44px;
-  place-items: center;
-  border-radius: 13px;
-  background: var(--todo-page);
-  color: var(--todo-text);
-  font-size: 21px;
+  position: fixed;
+  z-index: 1000;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  overflow: visible;
+  padding: 15px clamp(18px, 3.1vw, 58px)max(15px, env(safe-area-inset-bottom));
+  border: 0;
+  border-top: 1px solid var(--todo-border, #e5e2df);
+  border-radius: 0;
+  background: color-mix(in srgb, var(--color-surface, #ffffff) 94%, transparent);
+  box-shadow: 0 -8px 28px rgb(0 0 0 / 6%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .daily-todo-composer__form {
   display: grid;
-  grid-template-columns: minmax(180px, 1.5fr) minmax(150px, 1fr) minmax(130px, 0.75fr);
+  grid-template-columns: minmax(220px, 1.8fr) minmax(190px, 1.1fr) minmax(135px, 0.65fr) auto;
+  gap: 14px;
   align-items: end;
-  gap: 17px;
-  padding: 24px 25px 26px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .daily-todo-composer__field {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 8px;
+  gap: 5px;
   color: var(--todo-text);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
 }
+
+
+.daily-todo-composer .daily-todo-composer__field input,
+.daily-todo-composer .daily-todo-composer__field select {
+  height: 44px;
+  padding: 0 13px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.daily-todo-composer .daily-todo-composer__field input::placeholder {
+  font-size: 13px;
+  opacity: 1;
+}
+
+.daily-todo-composer .daily-todo-composer__field input:focus-visible,
+.daily-todo-composer .daily-todo-composer__field select:focus-visible {
+  outline: 2px solid var(--todo-accent);
+  outline-offset: 2px;
+}
+
+.daily-todo-composer .daily-todo-composer__submit,
+.daily-todo-composer .daily-todo-composer__cancel {
+  min-height: 44px;
+  padding: 10px 17px;
+  border-radius: 10px;
+  font-size: 12px !important;
+}
+
+/* Tablet and mobile */
+@media (max-width: 760px) {
+  .daily-todo-composer {
+    padding: 12px 16px
+      max(12px, env(safe-area-inset-bottom));
+  }
+
+  .daily-todo-composer__form {
+    gap: 10px;
+  }
+
+  .daily-todo-composer .daily-todo-composer__field input,
+  .daily-todo-composer .daily-todo-composer__field select {
+    height: 42px;
+    font-size: 13px;
+  }
+
+  .daily-todo-composer .daily-todo-composer__submit,
+  .daily-todo-composer .daily-todo-composer__cancel {
+    min-height: 42px;
+  }
+}
+
+/* Small phones */
+@media (max-width: 440px) {
+  .daily-todo-composer__form {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
+  }
+
+  .daily-todo-composer__field--title,
+  .daily-todo-composer__actions {
+    grid-column: 1 / -1;
+  }
+
+  .daily-todo-composer .daily-todo-composer__field input,
+  .daily-todo-composer .daily-todo-composer__field select {
+    height: 42px;
+    padding-inline: 10px;
+  }
+}
+
+
+
 
 .daily-todo-composer__field > span b {
   color: #d65b65;
@@ -421,14 +571,14 @@
 .daily-todo-composer__field select {
   width: 100%;
   min-width: 0;
-  height: 43px;
-  padding: 0 12px;
+  height: 37px;
+  padding: 0 10px;
   border: 1px solid var(--todo-border);
-  border-radius: 10px;
+  border-radius: 8px;
   outline: none;
   background: var(--todo-surface);
   color: var(--todo-text);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 450;
 }
 
@@ -444,20 +594,15 @@
   outline-offset: 2px;
 }
 
-.daily-todo-composer__note {
-  grid-column: 1 / -1;
-  margin: -4px 0 0;
-  color: var(--todo-muted);
-  font-size: 11px;
-}
-
 .daily-todo-composer__actions {
-  grid-column: 1 / -1;
   display: flex;
+  align-items: center;
   justify-content: flex-end;
-  gap: 9px;
-  padding-top: 18px;
-  border-top: 1px solid var(--todo-border);
+  gap: 7px;
+  min-width: max-content;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
 .daily-todo-composer__cancel,
@@ -465,13 +610,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-height: 41px;
-  padding: 9px 16px;
+  gap: 7px;
+  min-height: 37px;
+  padding: 8px 13px;
   border: 1px solid var(--todo-border);
-  border-radius: 10px;
-  font-size: 12px !important;
+  border-radius: 8px;
+  font-size: 10px !important;
   font-weight: 700 !important;
+  white-space: nowrap;
   transition: background-color 150ms ease, border-color 150ms ease, transform 150ms ease;
 }
 
@@ -500,30 +646,53 @@
   opacity: 0.45;
 }
 
+.daily-todo-composer__note {
+  grid-column: 1 / -1;
+  margin: -2px 0 0;
+  color: var(--todo-muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
 .daily-todo-screen button:focus-visible {
   outline: 2px solid var(--todo-accent);
   outline-offset: 3px;
 }
 
-@media (max-width: 840px) {
+@media (max-width: 1050px) {
   .daily-todo-screen__header {
     align-items: flex-start;
     flex-direction: column;
+    gap: 18px;
   }
 
   .daily-todo-screen__stats {
-    width: 100%;
+    width: min(100%, 420px);
+  }
+
+  .daily-todo-composer__form {
+    grid-template-columns: minmax(180px, 1.5fr) minmax(160px, 1fr) minmax(120px, 0.7fr) auto;
+    gap: 9px;
+  }
+
+  .daily-todo-composer__actions {
+    min-width: auto;
+  }
+
+  .daily-todo-composer__submit {
+    padding-inline: 10px;
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 760px) {
   .daily-todo-screen {
-    padding: 24px 15px 40px;
+    padding: 22px 17px 205px;
   }
 
   .daily-todo-screen__section-heading {
     align-items: flex-start;
     flex-direction: column;
+    gap: 10px;
   }
 
   .daily-todo-screen__filters {
@@ -534,43 +703,109 @@
     flex: 1;
   }
 
+  .daily-todo-screen__query-filters {
+    align-items: flex-end;
+  }
+
+  .daily-todo-screen__query-field {
+    flex: 1 1 160px;
+  }
+
+  .daily-todo-screen__query-field--project {
+    flex-basis: 210px;
+  }
+
+  .daily-todo-item {
+    grid-template-columns: 23px minmax(0, 1fr) auto;
+    gap: 10px;
+    padding: 13px 12px;
+  }
+
+  .daily-todo-composer {
+    padding: 10px 14px max(10px, env(safe-area-inset-bottom));
+  }
+
+  .daily-todo-composer__form {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.75fr);
+    gap: 9px;
+  }
+
+  .daily-todo-composer__field--title {
+    grid-column: 1 / -1;
+  }
+
+  .daily-todo-composer__actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+
+  .daily-todo-composer__field input,
+  .daily-todo-composer__field select {
+    height: 35px;
+    font-size: 11px;
+  }
+
+  .daily-todo-composer__cancel,
+  .daily-todo-composer__submit {
+    min-height: 35px;
+  }
+}
+
+@media (max-width: 440px) {
+  .daily-todo-screen {
+    padding-inline: 12px;
+    padding-bottom: 214px;
+  }
+
+  .daily-todo-screen__stats {
+    min-width: 0;
+  }
+
+  .daily-todo-screen__stat {
+    padding: 11px 10px;
+  }
+
+  .daily-todo-screen__stat strong {
+    font-size: 20px;
+  }
+
+  .daily-todo-screen__query-filters {
+    gap: 7px;
+    padding: 9px;
+  }
+
+  .daily-todo-screen__query-field,
+  .daily-todo-screen__query-field--project {
+    flex-basis: 100%;
+  }
+
   .daily-todo-item {
     grid-template-columns: 23px minmax(0, 1fr);
-    gap: 12px;
-    padding: 16px 14px;
   }
 
   .daily-todo-item__edit {
     grid-column: 2;
     justify-self: start;
-    min-height: 31px;
-    padding-inline: 9px;
-  }
-
-  .daily-todo-composer__header {
-    padding: 20px 18px;
   }
 
   .daily-todo-composer__form {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 15px;
-    padding: 20px 18px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
+  }
+
+  .daily-todo-composer__field--title {
+    grid-column: 1 / -1;
   }
 
   .daily-todo-composer__actions {
-    grid-column: auto;
-    flex-wrap: wrap;
-  }
-
-  .daily-todo-composer__actions button {
-    flex: 1;
+    grid-column: 1 / -1;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .daily-todo-screen *,
   .daily-todo-screen *::before,
-  .daily-todo-screen *::after {
+  .daily-todo-screen *::after,
+  .daily-todo-composer * {
     transition: none !important;
     scroll-behavior: auto !important;
   }
