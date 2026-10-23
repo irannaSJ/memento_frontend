@@ -6,7 +6,10 @@
 
 .record-detail {
   position: relative;
-  width: min(1320px, 100%);
+  /* width: min(1320px, 100%); */
+  width: 100%;
+  max-width: none;
+  min-width: 0;
   min-height: 100vh;
   margin-inline: auto;
   padding: 116px clamp(18px, 4vw, 54px) 90px;
@@ -738,8 +741,8 @@
 .record-detail__reading-card {
   min-width: 0;
   overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: 21px;
+  /* border: 1px solid var(--color-border);
+  border-radius: 21px; */
   background: var(--color-surface);
   box-shadow: 0 15px 40px
     color-mix(in srgb, var(--color-text) 4%, transparent);
@@ -1520,5 +1523,147 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+
+
+
+/* Append to the bottom of RecordDetailsPage.css.
+   Borderless editorial detail page + clean descriptions/details sections. */
+
+/* Main overview: remove the hero card surface and decorative background. */
+.record-detail .record-detail__header[data-detail-stage='hero'] {
+  position: relative;
+  min-height: 0;
+  padding: 24px 0 30px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible;
+}
+
+.record-detail .record-detail__header[data-detail-stage='hero']::before,
+.record-detail .record-detail__header[data-detail-stage='hero']::after,
+.record-detail .record-detail__hero-art {
+  display: none !important;
+  content: none !important;
+}
+
+.record-detail .record-detail__hero-content {
+  position: relative;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.record-detail .record-detail__header .record-detail__hero-icon {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.record-detail .record-detail__header .record-detail__hero-foot {
+  border-top: 0 !important;
+  padding-top: 20px;
+}
+
+/* The description becomes plain page content, not a bordered reader card. */
+.record-detail [data-detail-stage='description'] {
+  margin-top: 30px;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.record-detail .record-detail__reading-card {
+  margin: 0;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible;
+}
+
+.record-detail .record-detail__reading-topline,
+.record-detail .record-detail__reading-footer {
+  padding-inline: 0;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.record-detail .record-detail__reading-topline {
+  padding-top: 0;
+  padding-bottom: 16px;
+}
+
+.record-detail .record-detail__reading-footer {
+  margin-top: 20px;
+  padding-top: 12px;
+}
+
+.record-detail .record-detail__reading-icon,
+.record-detail .record-detail__section-symbol {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Details: preserve the responsive grid but remove each tile's card border. */
+.record-detail [data-detail-stage='details'] {
+  margin-top: 44px;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.record-detail .record-detail__grid {
+  gap: 20px 42px;
+}
+
+.record-detail .record-detail__field {
+  min-height: 0 !important;
+  padding: 13px 0 17px !important;
+  border: 0 !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  gap: 14px;
+}
+
+.record-detail .record-detail__field-icon {
+  flex: 0 0 auto;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.record-detail .record-detail__field-decoration {
+  display: none !important;
+}
+
+@media (max-width: 680px) {
+  .record-detail .record-detail__header[data-detail-stage='hero'] {
+    padding-block: 16px 22px !important;
+  }
+
+  .record-detail [data-detail-stage='description'],
+  .record-detail [data-detail-stage='details'] {
+    margin-top: 28px;
+  }
+
+  .record-detail .record-detail__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
   }
 }

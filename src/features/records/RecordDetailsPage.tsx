@@ -2,7 +2,6 @@
 import { useEffect, useRef, useState } from 'react'
 import DOMPurify from 'dompurify'
 import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 import {
   mementoApi,
@@ -15,7 +14,6 @@ import { RecordUpdateDialog } from '../../components/form/RecordUpdateDialog'
 
 import './RecordDetailsPage.css'
 
-gsap.registerPlugin(ScrollTrigger)
 
 interface RecordDetailPageProps {
   feature: FeatureDefinition
@@ -289,21 +287,36 @@ export function RecordDetailPage({
         ]
     : []
 
-  // Animate the hero and reveal detail sections with GSAP.
+  // Reveal the page in a single GSAP sequence: overview, description, then details.
+  // No ScrollTrigger is needed because the sections animate in reading order.
   useEffect(() => {
-    if (loading || !record || !rootRef.current) {
-      return
-    }
+    if (loading || !record || !rootRef.current) return
+
+    const root = rootRef.current
+    const hero = headerRef.current
+    const descriptionSection = descriptionSectionRef.current
+    const detailsSection = detailSectionRef.current
+
+    if (!hero || !descriptionSection || !detailsSection) return
 
     const reduceMotion = window.matchMedia(
       '(prefers-reduced-motion: reduce)',
     ).matches
 
-    if (reduceMotion) {
-      return
-    }
+    if (reduceMotion) return
 
     const context = gsap.context(() => {
+      const detailFields = gsap.utils.toArray<HTMLElement>(
+        '.record-detail__field',
+      )
+
+      // Hold detail values until their section has entered, then reveal them
+      // individually. This keeps the three main sections in a clear sequence.
+      gsap.set(detailFields, {
+        autoAlpha: 0,
+        y: 12,
+      })
+
       const timeline = gsap.timeline({
         defaults: {
           ease: 'power3.out',
@@ -312,35 +325,7 @@ export function RecordDetailPage({
 
       timeline
         .fromTo(
-          '.record-detail__hero-art',
-          {
-            autoAlpha: 0,
-            scale: 0.86,
-            rotate: -7,
-          },
-          {
-            autoAlpha: 1,
-            scale: 1,
-            rotate: 0,
-            duration: 0.8,
-          },
-          0,
-        )
-        .fromTo(
-          '.record-detail__eyebrow',
-          {
-            autoAlpha: 0,
-            y: 10,
-          },
-          {
-            autoAlpha: 1,
-            y: 0,
-            duration: 0.35,
-          },
-          0.08,
-        )
-        .fromTo(
-          '.record-detail__title-row',
+          hero,
           {
             autoAlpha: 0,
             y: 22,
@@ -349,91 +334,54 @@ export function RecordDetailPage({
             autoAlpha: 1,
             y: 0,
             duration: 0.55,
+            clearProps: 'opacity,visibility,transform',
           },
-          0.15,
+          0,
         )
         .fromTo(
-          '.record-detail__intro',
+          descriptionSection,
           {
             autoAlpha: 0,
-            y: 12,
+            y: 20,
           },
           {
             autoAlpha: 1,
             y: 0,
-            duration: 0.4,
+            duration: 0.48,
+            clearProps: 'opacity,visibility,transform',
           },
-          0.3,
+          '+=0.12',
         )
         .fromTo(
-          '.record-detail__badge',
+          detailsSection,
           {
             autoAlpha: 0,
-            scale: 0.92,
-            y: 8,
-          },
-          {
-            autoAlpha: 1,
-            scale: 1,
-            y: 0,
-            duration: 0.3,
-            stagger: 0.07,
-          },
-          0.38,
-        )
-        .fromTo(
-          '.record-detail__hero-foot',
-          {
-            autoAlpha: 0,
-            y: 10,
+            y: 20,
           },
           {
             autoAlpha: 1,
             y: 0,
-            duration: 0.35,
+            duration: 0.48,
+            clearProps: 'opacity,visibility,transform',
           },
-          0.48,
+          '+=0.12',
         )
 
-      gsap.fromTo(
-        '.record-detail__field',
-        {
-          autoAlpha: 0,
-          y: 18,
-        },
-        {
-          autoAlpha: 1,
-          y: 0,
-          duration: 0.48,
-          stagger: 0.065,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: detailSectionRef.current,
-            start: 'top 82%',
-            once: true,
+      if (detailFields.length > 0) {
+        timeline.to(
+          detailFields,
+          {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.28,
+            stagger: 0.045,
+            ease: 'power2.out',
+            clearProps: 'opacity,visibility,transform',
           },
-        },
-      )
-
-      gsap.fromTo(
-        '.record-detail__reading-card',
-        {
-          autoAlpha: 0,
-          y: 22,
-        },
-        {
-          autoAlpha: 1,
-          y: 0,
-          duration: 0.55,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: descriptionSectionRef.current,
-            start: 'top 85%',
-            once: true,
-          },
-        },
-      )
-    }, rootRef)
+          '-=0.04',
+        )
+      }
+    }, root)
 
     return () => {
       context.revert()
@@ -664,6 +612,7 @@ export function RecordDetailPage({
       <header
         ref={headerRef}
         className="record-detail__header"
+        data-detail-stage="hero"
       >
         <div className="record-detail__hero-art" aria-hidden="true">
           <span className="record-detail__hero-orb record-detail__hero-orb--one" />
@@ -707,13 +656,13 @@ export function RecordDetailPage({
             </div>
           </div>
 
-          {description !== 'Not set' && (
+          {/* {description !== 'Not set' && (
             <p className="record-detail__intro">
               {description.length > 240
                 ? `${description.slice(0, 240).trimEnd()}…`
                 : description}
             </p>
-          )}
+          )} */}
 
           <div className="record-detail__badges">
             {statusValue !== 'Not set' && (
@@ -818,6 +767,7 @@ export function RecordDetailPage({
       <section
         ref={descriptionSectionRef}
         className="record-detail__section record-detail__description-section"
+        data-detail-stage="description"
         aria-labelledby="record-detail-description-heading"
       >
         <div className="record-detail__section-heading record-detail__description-heading">
@@ -933,7 +883,8 @@ export function RecordDetailPage({
 
       <section
         ref={detailSectionRef}
-        className="record-detail__section"
+        className="record-detail__section record-detail__details-section"
+        data-detail-stage="details"
         aria-labelledby="record-detail-fields-heading"
       >
         <div className="record-detail__section-heading">
