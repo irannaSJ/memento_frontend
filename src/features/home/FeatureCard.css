@@ -857,7 +857,7 @@
   line-height: 1.35;
   overflow-wrap: anywhere;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  /* -webkit-line-clamp: 2; */
 }
 
 .feature-card__record-description {
@@ -869,7 +869,7 @@
   line-height: 1.7;
   overflow-wrap: anywhere;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  /* -webkit-line-clamp: 3; */
 }
 
 .feature-card__record-details {
@@ -1022,7 +1022,7 @@
 .feature-card__record-description {
   font-size: 12px;
   line-height: 1.85;
-  -webkit-line-clamp: 4;
+  /* -webkit-line-clamp: 4; */
 }
 
 /* Details become easier to read */
