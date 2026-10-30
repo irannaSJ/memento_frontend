@@ -151,7 +151,7 @@ export function RecordDetailPage({
   const [loadError, setLoadError] = useState<string | null>(null)
   const [isUpdateOpen, setIsUpdateOpen] = useState(false)
   const [updateMessage, setUpdateMessage] = useState<string | null>(null)
-  const [copyMessage, setCopyMessage] = useState<string | null>(null)
+  // const [copyMessage, setCopyMessage] = useState<string | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [retryKey, setRetryKey] = useState(0)
 
@@ -506,16 +506,16 @@ export function RecordDetailPage({
     }
   }, [imagePreview])
 
-  async function handleCopyRecordId() {
-    if (!record) return
+  // async function handleCopyRecordId() {
+  //   if (!record) return
 
-    try {
-      await navigator.clipboard.writeText(record.name)
-      setCopyMessage('Record ID copied')
-    } catch {
-      setCopyMessage('Unable to copy automatically')
-    }
-  }
+  //   try {
+  //     await navigator.clipboard.writeText(record.name)
+  //     setCopyMessage('Record ID copied')
+  //   } catch {
+  //     setCopyMessage('Unable to copy automatically')
+  //   }
+  // }
 
   if (loading) {
     return (
@@ -684,7 +684,7 @@ export function RecordDetailPage({
             )}
           </div>
 
-          <div className="record-detail__hero-foot">
+          {/* <div className="record-detail__hero-foot">
             <div className="record-detail__record-reference">
               <span className="record-detail__record-reference-icon">
                 <i className="ri-hashtag" aria-hidden="true" />
@@ -727,7 +727,7 @@ export function RecordDetailPage({
             <p className="record-detail__copy-feedback" role="status">
               {copyMessage}
             </p>
-          )}
+          )} */}
         </div>
       </header>
 

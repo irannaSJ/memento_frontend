@@ -77,33 +77,33 @@ function getTitle(
   return record.name
 }
 
-function getDescription(
-  feature: FeatureDefinition,
-  record: MementoRecord,
-): string {
-  if (feature.id === 'projects') {
-    return (
-      plainText(record.description) ||
-      'Project overview and planning details.'
-    )
-  }
+// function getDescription(
+//   feature: FeatureDefinition,
+//   record: MementoRecord,
+// ): string {
+//   if (feature.id === 'projects') {
+//     return (
+//       plainText(record.description) ||
+//       'Project overview and planning details.'
+//     )
+//   }
 
-  if (feature.id === 'tasks') {
-    return (
-      plainText(record.description) ||
-      'Task details and progress.'
-    )
-  }
+//   if (feature.id === 'tasks') {
+//     return (
+//       plainText(record.description) ||
+//       'Task details and progress.'
+//     )
+//   }
 
-  if (feature.id === 'todo') {
-    return (
-      plainText(record.description) ||
-      'Daily to-do details.'
-    )
-  }
+//   if (feature.id === 'todo') {
+//     return (
+//       plainText(record.description) ||
+//       'Daily to-do details.'
+//     )
+//   }
 
-  return 'Activity record and related work.'
-}
+//   return 'Activity record and related work.'
+// }
 
 function getDetails(
   feature: FeatureDefinition,
@@ -431,9 +431,9 @@ export function FeatureCard({
                   </span>
                 </div>
 
-                <p className="feature-card__record-description">
+                {/* <p className="feature-card__record-description">
                   {getDescription(feature, activeRecord)}
-                </p>
+                </p> */}
 
                 <div className="feature-card__record-details">
                   {recordDetails.map((detail) => (

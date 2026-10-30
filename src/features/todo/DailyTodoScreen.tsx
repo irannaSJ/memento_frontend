@@ -231,7 +231,7 @@ export function DailyTodoScreen({ projects: suppliedProjects, onBack }: DailyTod
             </button>
           )}
           <span className="daily-todo-screen__eyebrow">MEMENTO / PERSONAL WORKSPACE</span>
-          <h1 id="daily-todo-heading">Daily To-Do</h1>
+          <h1 id="daily-todo-heading">Tasks To-Do</h1>
           <p>Capture the next small step. Keep your focus clear and your progress visible.</p>
           <span className="daily-todo-screen__date">{formatDateHeading(new Date())}</span>
         </div>

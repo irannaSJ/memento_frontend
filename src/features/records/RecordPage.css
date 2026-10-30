@@ -432,7 +432,8 @@
 
 .record-page__filters {
   display: flex;
-  align-items: flex-end;
+  justify-content: center;
+  align-items: center;
   flex-wrap: wrap;
   gap: 12px;
   /* margin-top: 18px; */
@@ -626,3 +627,37 @@
 
 
 
+.record-page__create-button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--color-text);
+  color: var(--color-page);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    /* opacity 160ms ease, */
+    transform 160ms ease;
+}
+
+.record-page__create-button:hover {
+  /* opacity: 5.0; */
+  transform: translateY(-2px);
+  color: rgb(88, 85, 85);
+}
+
+.record-page__create-button:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.record-page__create-button i {
+  font-size: 16px;
+}

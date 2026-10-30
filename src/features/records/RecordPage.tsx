@@ -1,6 +1,6 @@
-import { useEffect, useRef,useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import gsap from 'gsap'
-import {useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import {
   mementoApi,
@@ -12,12 +12,19 @@ import type { FeatureDefinition } from '../home/featureData'
 import { RecordTable } from '../../components/list/RecordTable'
 import { RecordCard } from '../../components/list/RecordCard'
 import { RecordUpdateDialog } from '../../components/form/RecordUpdateDialog'
+import { MetadataDrivenForm } from '../../components/form/MetadataDrivenForm'
 
 
 import './RecordPage.css'
 
 const PAGE_LENGTH = 20
 
+const CREATE_LABEL_BY_FEATURE: Record<FeatureDefinition['id'], string> = {
+  projects: 'Project',
+  tasks: 'Task',
+  todo: 'To-do item',
+  activity: 'Activity Log',
+}
 
 const FILTER_FIELDS_BY_FEATURE: Record<
   FeatureDefinition['id'],
@@ -97,8 +104,6 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
   const [linkFilterOptions, setLinkFilterOptions] =
     useState<Record<string, FilterOption[]>>({})
 
-
-
   const pageRef = useRef<HTMLElement>(null)
 
   const isCardFeature = feature.id === 'projects' || feature.id === 'tasks'
@@ -107,6 +112,7 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
   const [records, setRecords] = useState<MementoRecord[]>([])
   const [pagination, setPagination] = useState<PaginationInfo | null>(null)
   const [editingRecordName, setEditingRecordName] = useState<string | null>(null)
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [actionMessage, setActionMessage] = useState<string | null>(null)
   const [searchInput, setSearchInput] = useState('')
   const [activeSearch, setActiveSearch] = useState('')
@@ -234,7 +240,6 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
   // Load the visible list columns and field metadata.
   useEffect(() => {
     let cancelled = false
-
     void mementoApi
       .getDocTypeMetadata(doctype, 'list')
       .then((response) => {
@@ -258,9 +263,11 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
     }
   }, [doctype, metadataRefreshKey])
 
-  // Load records whenever search, page, feature, or refresh state changes.
+  // Load records whenever search, filters, page, feature, or refresh state changes.
   useEffect(() => {
     let cancelled = false
+    setRecordsLoading(true)
+    setRecordsError(null)
 
     void mementoApi.getDocTypeRecords({
         doctype,
@@ -293,7 +300,7 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
     return () => {
       cancelled = true
     }
-  }, [doctype, start, activeSearch,activeFilters, recordsRefreshKey])
+  }, [doctype, start, activeSearch, activeFilters, recordsRefreshKey])
 
 
 
@@ -327,7 +334,8 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
 
               return [fieldname, choices] as const
             } catch {
-                return [fieldname, [] as FilterOption[]] as const            }
+              return [fieldname, [] as FilterOption[]] as const
+            }
           },
         ),
       )
@@ -451,6 +459,59 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
 
   // const pageNumber = Math.floor(start / PAGE_LENGTH) + 1
 
+  // Reuse the metadata-driven form for create flows across RecordPage features.
+  if (isCreateOpen) {
+    const singularLabel = CREATE_LABEL_BY_FEATURE[feature.id]
+
+    return (
+      <section
+        className="record-create-page"
+        aria-labelledby="record-create-page-title"
+      >
+        <button
+          type="button"
+          className="record-page__back"
+          onClick={() => setIsCreateOpen(false)}
+        >
+          <i className="ri-arrow-left-line" aria-hidden="true" />
+          Back to {feature.itemPlural}
+        </button>
+
+        <header className="record-create-page__header">
+          <span className="record-create-page__eyebrow">NEW RECORD</span>
+          <h1 id="record-create-page-title">{singularLabel} information</h1>
+          <p>Fields and validation are loaded from the backend.</p>
+        </header>
+
+        <div className="record-create-page__form-area">
+          <MetadataDrivenForm
+            key={`${feature.id}:create`}
+            doctype={doctype}
+            mode="create"
+            onCancel={() => setIsCreateOpen(false)}
+            onSuccess={(result) => {
+              setIsCreateOpen(false)
+              setActionMessage(`${singularLabel} ${result.name} created successfully.`)
+              setStart(0)
+              setSearchInput('')
+              setActiveSearch('')
+              setRecordsLoading(true)
+              setRecordsError(null)
+              setRecordsRefreshKey((value) => value + 1)
+
+              // Clear filters so the newly created record is not hidden by the
+              // previous filtered view.
+              navigate(
+                { pathname: location.pathname, search: '' },
+                { replace: true },
+              )
+            }}
+          />
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section
       ref={pageRef}
@@ -528,7 +589,19 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
               aria-label="Open Daily To-Do"
             >
               <i className="ri-list-check-2" aria-hidden="true" />
-              Daily To-Do
+              Tasks To-Do
+            </button>
+          )}
+
+          {metadata?.capabilities.can_create && (
+            <button
+              type="button"
+              className="record-page__secondary-button record-page__create-button"
+              onClick={() => setIsCreateOpen(true)}
+              aria-label={`Create a new ${CREATE_LABEL_BY_FEATURE[feature.id].toLowerCase()}`}
+            >
+              <i className="ri-add-line" aria-hidden="true" />
+              Create New {CREATE_LABEL_BY_FEATURE[feature.id]}
             </button>
           )}
         </div>
@@ -553,7 +626,9 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
 
               const fieldname = field.fieldname
               const value = String(activeFilters[fieldname] ?? '')
-              const options = getSelectOptions(field.options)
+              const options = getSelectOptions(
+                'options' in field ? field.options : undefined,
+              )
               const linkOptions = linkFilterOptions[fieldname] ?? []
 
               const selectedLabel =
@@ -651,6 +726,7 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
             </button>
           )}
         </div>
+
       </div>
 
       {actionMessage && (
@@ -727,8 +803,7 @@ export function RecordPage({ feature, onBack }: RecordPageProps) {
               relatedProjectName={
                 feature.id === 'tasks'
                   ? linkFilterOptions.project?.find(
-                      (option) =>
-                        option.value === String(record.project ?? ''),
+                      (option) => option.value === String(record.project ?? ''),
                     )?.label
                   : undefined
               }
